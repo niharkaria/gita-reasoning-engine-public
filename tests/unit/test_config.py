@@ -6,6 +6,7 @@ test green is a fast signal that the environment (Python version, deps,
 .env handling) is set up correctly.
 """
 
+
 import pytest
 
 from gita_engine.core.config import Settings, get_settings

@@ -69,9 +69,7 @@ class Source(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     name: Mapped[str] = mapped_column(Text, nullable=False)
-    source_type: Mapped[str] = mapped_column(
-        String(20), nullable=False
-    )  # 'translation' | 'commentary'
+    source_type: Mapped[str] = mapped_column(String(20), nullable=False)  # 'translation' | 'commentary'
     tradition: Mapped[str] = mapped_column(String(50), nullable=False, default="pushtimarg")
     is_accepted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     citation_label: Mapped[str] = mapped_column(Text, nullable=False)
