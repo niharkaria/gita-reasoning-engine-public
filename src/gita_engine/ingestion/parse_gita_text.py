@@ -112,7 +112,7 @@ def _split_commentary(commentary_text: str) -> tuple[str | None, str | None, lis
         warnings.append("shlokartha_label_missing")
 
     if vivechan_match:
-        vivechan = commentary_text[vivechan_match.end():].strip() or None
+        vivechan = commentary_text[vivechan_match.end() :].strip() or None
     else:
         warnings.append("vivechan_label_missing")
 
@@ -136,9 +136,7 @@ def _is_verse_like(segment: str, *, require_danda_ending: bool = True) -> bool:
         return False
     if len(stripped) > 120:
         return False
-    if require_danda_ending and not stripped.endswith("।"):
-        return False
-    return True
+    return not require_danda_ending or stripped.endswith("।")
 
 
 def _split_chunk_into_commentary_and_shloka(chunk: str) -> tuple[str, str]:
