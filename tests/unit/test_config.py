@@ -6,20 +6,22 @@ test green is a fast signal that the environment (Python version, deps,
 .env handling) is set up correctly.
 """
 
+import pytest
+
 from gita_engine.core.config import Settings, get_settings
 
 
-def test_settings_loads_with_required_fields(monkeypatch):
+def test_settings_loads_with_required_fields(monkeypatch: pytest.MonkeyPatch) -> None:
     """Settings should construct successfully when required env vars are set."""
     monkeypatch.setenv("POSTGRES_PASSWORD", "test-password")
-    settings = Settings(_env_file=None)  # type: ignore[call-arg]
+    settings = Settings()
 
     assert settings.app_env == "development"
     assert settings.postgres_db == "gita_engine"
     assert "test-password" in settings.postgres_dsn
 
 
-def test_get_settings_is_cached(monkeypatch):
+def test_get_settings_is_cached(monkeypatch: pytest.MonkeyPatch) -> None:
     """get_settings() should return the same cached instance across calls."""
     monkeypatch.setenv("POSTGRES_PASSWORD", "test-password")
     get_settings.cache_clear()
