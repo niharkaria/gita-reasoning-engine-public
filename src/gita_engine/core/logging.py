@@ -17,6 +17,7 @@ Design notes:
 
 import logging
 import sys
+from typing import cast
 
 import structlog
 
@@ -58,4 +59,4 @@ def configure_logging() -> None:
 
 def get_logger(name: str) -> structlog.stdlib.BoundLogger:
     """Return a structlog logger bound to the given module name."""
-    return structlog.get_logger(name)
+    return cast(structlog.stdlib.BoundLogger, structlog.get_logger(name))
