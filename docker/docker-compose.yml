@@ -1,0 +1,45 @@
+# docker-compose.yml
+#
+# Local development stack. Neo4j is intentionally NOT included yet — its
+# use is an open decision deferred to the Phase 3 database design (see
+# docs/architecture/). Add it here only once that ADR lands.
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: gita_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-gita_engine}
+      POSTGRES_USER: ${POSTGRES_USER:-gita_engine}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-gita_engine}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    container_name: gita_api
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      POSTGRES_HOST: postgres
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ../src:/app/src:ro
+
+volumes:
+  postgres_data:

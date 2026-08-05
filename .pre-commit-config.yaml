@@ -1,0 +1,25 @@
+# .pre-commit-config.yaml
+#
+# Why this file exists:
+#   Catches lint/format/type issues at commit time, before they ever hit CI
+#   or a PR review — cheaper feedback loop than waiting for GitHub Actions.
+#   Run `pre-commit install` once after cloning to activate the git hook.
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.7.4
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        args: [--maxkb=2048]
+      - id: check-merge-conflict
+      - id: detect-private-key

@@ -1,0 +1,47 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# --- uv ---
+uv.lock.bak
+
+# --- Environment / secrets ---
+.env
+.env.*
+!.env.example
+
+# --- Corpus data (copyrighted source texts + derived artifacts) ---
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# --- Docker ---
+*.pid
+
+# --- Kaggle ---
+kaggle/**/*.ipynb_checkpoints/
+kaggle/kaggle.json
+
+# --- IDE ---
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+
+# --- Logs ---
+*.log
+logs/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
