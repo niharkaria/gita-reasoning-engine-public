@@ -49,6 +49,13 @@ Known limitations (expect to refine once run against the full 320 pages):
       real page footers) can otherwise get picked up by chapter tracking
       and mis-tag early verses. Runs of 3+ chapter markers packed close
       together are detected and excluded as TOC, not real footers.
+    - We do NOT attempt to filter "spurious" markers (e.g. a translation
+      paragraph re-stamping its own verse number) based on preceding-text
+      heuristics — an earlier attempt at this caused a serious regression
+      on pages where OCR didn't preserve blank-line formatting, silently
+      merging multiple real verses into one. A few extra duplicate entries
+      (visible via diagnose.py) are a far smaller, more recoverable problem
+      than silent verse loss.
 """
 
 import re
@@ -58,12 +65,24 @@ GUJARATI_DIGIT_CHARS = "૦૧૨૩૪૫૬૭૮૯"
 GUJARATI_DIGITS = str.maketrans(GUJARATI_DIGIT_CHARS, "0123456789")
 
 CHAPTER_RE = re.compile(r"અધ્યાય\s*([૦-૯]+)")
-# Tolerant of missing/extra dandas (।+), a stray Latin digit (1) that OCR
-# occasionally inserts, and a stray space INSIDE the number itself (e.g.
-# "૧ ૮।।" for what should be "૧૮।।" — confirmed real OCR defect specific
-# to certain digit pairs). Anchored to end-of-line to avoid matching
-# inline citations like "ભાગ.૧૦।૨।૨૬" which continue on the same line.
-VERSE_END_RE = re.compile(r"।+\s*([૦-૯1](?:\s?[૦-૯1]){0,3})\s*।+(?=[ \t]*\n)")
+# Danda characters, including OCR substitutes actually seen in real output:
+#   ।  U+0964 Devanagari danda (the normal case)
+#   ॥  U+0965 Devanagari DOUBLE danda (Tesseract sometimes emits this)
+#   |  ASCII pipe (visually identical, occasionally substituted)
+#   1  Latin digit — OCR routinely renders "।।" as "11" on BOTH sides of
+#      a verse number (e.g. "ભારત 11૬11" for verse 6, "ગુણૈઃ 11૪૦ ।।"
+#      for verse 40). Confirmed real defect, not a guess. This is only
+#      the danda-run character class — the number itself must still start
+#      with a genuine Gujarati digit (see below), so a bare "11" can never
+#      be misread as the verse number.
+_DANDA = r"[।॥|1]"
+# Tolerant of missing/extra dandas, a stray Latin digit (1) that OCR
+# occasionally inserts INSIDE the number, and a stray space inside the
+# number itself (e.g. "૧ ૮।।" for what should be "૧૮।।" — confirmed real
+# OCR defect specific to certain digit pairs). Anchored to end-of-line to
+# avoid matching inline citations like "ભાગ.૧૦।૨।૨૬" which continue on
+# the same line.
+VERSE_END_RE = re.compile(_DANDA + r"+\s*([૦-૯](?:\s?[૦-૯1]){0,3})\s*" + _DANDA + r"+(?=[ \t]*\n)")
 COLOPHON_MARKER_RE = re.compile(r"ધ્યાયઃ?\s*$")
 SHLOKARTH_LABEL_RE = re.compile(r"શ્લોકાર્થ\s*[:ઃ]?")
 # વિવેચન ("elaboration") is the standard label, but some verses — notably
@@ -86,35 +105,6 @@ def _is_colophon(full_text: str, match_start: int) -> bool:
     colophon (e.g. "નવમોડધ્યાયઃ ।।૯।।") rather than a real verse."""
     preceding = full_text[max(0, match_start - 40) : match_start]
     return bool(COLOPHON_MARKER_RE.search(preceding.rstrip()))
-
-
-def _is_spurious_marker(full_text: str, match_start: int, max_lookback: int = 400) -> bool:
-    """True if this verse-marker-shaped match is NOT closing a real shloka
-    pada, and should be discarded rather than treated as a new verse.
-
-    Two confirmed real cases this catches:
-    1. A shlokartha (translation) paragraph sometimes re-stamps the verse
-       number at ITS OWN end too (e.g. "...[EXAMPLE TEXT REDACTED]" repeating the
-       "59" the shloka itself already closed with).
-    2. An inline citation/cross-reference sentence (e.g. "...[EXAMPLE TEXT REDACTED]") happens to end in digits
-       shaped like a marker.
-
-    Both share a signature: the text immediately before the match, back to
-    the nearest blank line, is either too long to be a shloka pada or
-    contains a શ્લોકાર્થ/વિવેચન label — real shloka padas are always short
-    and label-free.
-    """
-    search_start = max(0, match_start - max_lookback)
-    window = full_text[search_start:match_start]
-    blank_line_matches = list(re.finditer(r"\n\s*\n", window))
-    segment = window[blank_line_matches[-1].end() :] if blank_line_matches else window
-    segment = segment.strip()
-
-    if not segment:
-        return False  # nothing precedes — treat as fine, not spurious
-    if len(segment) > 120:
-        return True
-    return bool(SHLOKARTH_LABEL_RE.search(segment) or VIVECHAN_LABEL_RE.search(segment))
 
 
 def _is_isolated_footer_line(
@@ -378,11 +368,18 @@ def parse_ocr_text(full_text: str) -> list[ParsedVerse]:
                 break
         return current
 
+    # NOTE: we deliberately do NOT try to filter out "spurious" markers
+    # (e.g. a shlokartha paragraph re-stamping its own verse number, or a
+    # citation sentence ending in marker-shaped digits) based on preceding-
+    # text heuristics. An earlier attempt at this caused a serious
+    # regression: pages where OCR didn't preserve blank-line formatting
+    # made the heuristic wrongly reject GENUINE verse markers, silently
+    # merging multiple real verses into one and losing them. A few extra
+    # duplicate entries (caught by diagnose.py) are a much smaller, more
+    # visible, easily-fixed problem than silent verse loss.
     verses: list[ParsedVerse] = []
     matches = [
-        m
-        for m in VERSE_END_RE.finditer(full_text)
-        if not _is_colophon(full_text, m.start()) and not _is_spurious_marker(full_text, m.start())
+        m for m in VERSE_END_RE.finditer(full_text) if not _is_colophon(full_text, m.start())
     ]
 
     for i, match in enumerate(matches):
