@@ -25,16 +25,27 @@ make install
 
 # 2. Configure environment
 cp .env.example .env
-# edit .env with real values
+# edit .env with real values, including HF_API_TOKEN for the generation model
 
-# 3. Start local services (Postgres + API)
+# 3. Start the full stack (Postgres + API + frontend)
 make up
 
-# 4. Run tests
+# 4. Open the app
+# Frontend: http://localhost:3000
+# API docs: http://localhost:8000/docs
+
+# 5. Run tests
 make test
 ```
 
 Run `make help` for the full list of available commands.
+
+Note: the API answers questions by embedding queries with BGE-M3
+(runs locally, fine for one query at a time) and generating with a
+hosted Qwen model via Hugging Face's Inference API (needs `HF_API_TOKEN`
+in `.env`). Bulk corpus embeddings are generated separately on Kaggle
+(GPU required) — see `docs/phases/phase_5_6_7_retrieval_reasoning_evaluation.md`
+for that one-time round trip.
 
 ## Tech Stack
 
@@ -45,6 +56,7 @@ Reranker · Qwen Instruct · Ragas · DeepEval · Langfuse · Docker · Next.js 
 
 ```
 src/gita_engine/     Core Python package (ingestion, retrieval, reasoning, ...)
+frontend/             Next.js chat UI
 kaggle/               Heavy-compute notebooks (embedding jobs)
 tests/                Unit and integration tests
 data/                 Raw/processed corpus (gitignored — not committed)

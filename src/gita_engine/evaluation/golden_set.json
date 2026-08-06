@@ -1,0 +1,25 @@
+{
+  "description": "Hand-picked question -> expected-verse pairs for evaluating retrieval accuracy. Expand this as the corpus grows; each entry's expected_verses should be verses a knowledgeable reader would agree directly address the question.",
+  "cases": [
+    {
+      "question": "What happens to the soul when the body dies?",
+      "expected_verses": [
+        { "chapter": 2, "verse_number": 27 },
+        { "chapter": 2, "verse_number": 28 }
+      ]
+    },
+    {
+      "question": "Who is the true enjoyer and lord of all sacrifices?",
+      "expected_verses": [
+        { "chapter": 9, "verse_number": 24 }
+      ]
+    },
+    {
+      "question": "Show me Krishna's universal form with many faces and eyes.",
+      "expected_verses": [
+        { "chapter": 11, "verse_number": 5 },
+        { "chapter": 11, "verse_number": 6 }
+      ]
+    }
+  ]
+}

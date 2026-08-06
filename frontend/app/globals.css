@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+:root {
+  /* Manuscript / epigraphic palette — deliberately not the generic
+     cream+terracotta or near-black+neon defaults. Evokes old book
+     binding (oxblood), stone/parchment, and gold-leaf illumination. */
+  --stone: #e8e2d5;
+  --stone-dim: #ddd5c3;
+  --ink: #2b2420;
+  --ink-soft: #5a5044;
+  --oxblood: #6b1e23;
+  --oxblood-dim: #8a3439;
+  --brass: #a47c48;
+  --brass-soft: #c9bfa8;
+}
+
+@theme inline {
+  --color-stone: var(--stone);
+  --color-stone-dim: var(--stone-dim);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-oxblood: var(--oxblood);
+  --color-oxblood-dim: var(--oxblood-dim);
+  --color-brass: var(--brass);
+  --color-brass-soft: var(--brass-soft);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-gujarati: var(--font-gujarati);
+}
+
+body {
+  background: var(--stone);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+::selection {
+  background: var(--brass-soft);
+  color: var(--ink);
+}
+
+/* Visible keyboard focus everywhere — accessibility floor, not optional */
+:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

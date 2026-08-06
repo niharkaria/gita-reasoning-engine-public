@@ -12,31 +12,16 @@ from gita_engine.ingestion.parse_gita_text import ParsedVerse, parse_ocr_text
 
 # Traditional canonical verse count per chapter (sums to 700).
 CANONICAL_COUNTS = {
-    1: 47,
-    2: 72,
-    3: 43,
-    4: 42,
-    5: 29,
-    6: 47,
-    7: 30,
-    8: 28,
-    9: 34,
-    10: 42,
-    11: 55,
-    12: 20,
-    13: 34,
-    14: 27,
-    15: 20,
-    16: 24,
-    17: 28,
-    18: 78,
+    1: 47, 2: 72, 3: 43, 4: 42, 5: 29, 6: 47, 7: 30, 8: 28,
+    9: 34, 10: 42, 11: 55, 12: 20, 13: 34, 14: 27, 15: 20,
+    16: 24, 17: 28, 18: 78,
 }
 
 with open("full_book.txt", encoding="utf-8") as f:
     text = f.read()
 verses = parse_ocr_text(text)
 
-by_chapter: dict[int, list["ParsedVerse"]] = defaultdict(list)
+by_chapter: dict[int, list[ParsedVerse]] = defaultdict(list)
 for v in verses:
     if v.chapter is not None:
         by_chapter[v.chapter].append(v)

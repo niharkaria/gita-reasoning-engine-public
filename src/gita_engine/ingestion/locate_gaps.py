@@ -8,31 +8,16 @@ from collections import defaultdict
 from gita_engine.ingestion.parse_gita_text import ParsedVerse, parse_ocr_text
 
 CANONICAL_COUNTS = {
-    1: 47,
-    2: 72,
-    3: 43,
-    4: 42,
-    5: 29,
-    6: 47,
-    7: 30,
-    8: 28,
-    9: 34,
-    10: 42,
-    11: 55,
-    12: 20,
-    13: 34,
-    14: 27,
-    15: 20,
-    16: 24,
-    17: 28,
-    18: 78,
+    1: 47, 2: 72, 3: 43, 4: 42, 5: 29, 6: 47, 7: 30, 8: 28,
+    9: 34, 10: 42, 11: 55, 12: 20, 13: 34, 14: 27, 15: 20,
+    16: 24, 17: 28, 18: 78,
 }
 
 with open("full_book.txt", encoding="utf-8") as f:
     text = f.read()
 verses = parse_ocr_text(text)
 
-by_chapter: dict[int, list["ParsedVerse"]] = defaultdict(list)
+by_chapter: dict[int, list[ParsedVerse]] = defaultdict(list)
 for v in verses:
     if v.chapter is not None:
         by_chapter[v.chapter].append(v)
@@ -57,7 +42,7 @@ for ch in sorted(CANONICAL_COUNTS):
 print("\n=== Duplicate verse numbers (exact locations) ===\n")
 for ch in sorted(CANONICAL_COUNTS):
     parsed = by_chapter.get(ch, [])
-    seen: dict[int, list["ParsedVerse"]] = defaultdict(list)
+    seen: dict[int, list[ParsedVerse]] = defaultdict(list)
     for v in parsed:
         seen[v.verse_number].append(v)
     for num, group in seen.items():

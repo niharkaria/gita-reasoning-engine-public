@@ -49,13 +49,6 @@ Known limitations (expect to refine once run against the full 320 pages):
       real page footers) can otherwise get picked up by chapter tracking
       and mis-tag early verses. Runs of 3+ chapter markers packed close
       together are detected and excluded as TOC, not real footers.
-    - We do NOT attempt to filter "spurious" markers (e.g. a translation
-      paragraph re-stamping its own verse number) based on preceding-text
-      heuristics — an earlier attempt at this caused a serious regression
-      on pages where OCR didn't preserve blank-line formatting, silently
-      merging multiple real verses into one. A few extra duplicate entries
-      (visible via diagnose.py) are a far smaller, more recoverable problem
-      than silent verse loss.
 """
 
 import re
@@ -116,9 +109,7 @@ def _is_colophon(full_text: str, match_start: int) -> bool:
     return bool(COLOPHON_MARKER_RE.search(preceding.rstrip()))
 
 
-def _is_isolated_footer_line(
-    full_text: str, match_start: int, match_end: int, max_len: int = 25
-) -> bool:
+def _is_isolated_footer_line(full_text: str, match_start: int, match_end: int, max_len: int = 25) -> bool:
     """True if the line containing this chapter-marker match is short and
     isolated — the shape of a real page footer (e.g. "અધ્યાય ૯ ૧૨૩",
     "।। અધ્યાય ૬ ।।") — rather than an inline mention of a chapter number
@@ -200,9 +191,7 @@ def _truncate_after_final_colophon(full_text: str) -> str:
 
 
 def _filter_toc_clusters(
-    chapter_positions: list[tuple[int, int]],
-    cluster_gap_threshold: int = 30,
-    min_cluster_size: int = 3,
+    chapter_positions: list[tuple[int, int]], cluster_gap_threshold: int = 30, min_cluster_size: int = 3
 ) -> list[tuple[int, int]]:
     """Remove chapter markers that belong to a table-of-contents listing
     rather than real per-page footers.
@@ -267,7 +256,7 @@ def _split_commentary(commentary_text: str) -> tuple[str | None, str | None, lis
         warnings.append("shlokartha_label_missing")
 
     if vivechan_match:
-        vivechan = commentary_text[vivechan_match.end() :].strip() or None
+        vivechan = commentary_text[vivechan_match.end():].strip() or None
     else:
         warnings.append("vivechan_label_missing")
 

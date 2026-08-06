@@ -15,17 +15,16 @@ Design decisions:
       we register it twice under the same author/citation, once per role,
       matching how the schema is meant to be queried (filter by type).
     - Duplicate (chapter, verse_number) pairs from parsing (see
-      diagnose.py) are MERGED, not discarded — and merged correctly, not
-      naively. We traced the actual mechanism: the FIRST entry's
-      sanskrit_text is reliably the real shloka; every later entry's
-      sanskrit_text is actually overflow translation/commentary text that
-      got mislabeled as a shloka by a stray repeated verse-number marker.
-      A naive "keep whichever field is longest" merge was tried and
-      rejected — it actively overwrote the real shloka with translation
-      text, since the mislabeled overflow is usually longer. Instead we
-      trust entry 0's shloka as-is and re-run every other captured
-      fragment through the same label-based (શ્લોકાર્થ/વિવેચન) splitter
-      used during normal parsing.
+      diagnose.py) are MERGED, not discarded. We confirmed these arise
+      from the source text re-stamping a verse number partway through its
+      OWN translation paragraph (e.g. "...[EXAMPLE TEXT REDACTED]" repeating the
+      number the shloka already closed with) — meaning a single real
+      verse's content gets artificially split into two parsed entries by
+      that stray repeated marker. It is NOT two different verses sharing
+      a number. Picking one entry and discarding the other would silently
+      throw away real captured text, so instead we keep, per field
+      (shloka/shlokartha/vivechan), whichever version is longer across
+      all entries sharing that verse number.
     - Verses with no shlokartha or no vivechan simply don't get that
       child row; the Verse row itself is still created as long as it has
       real shloka text.
@@ -110,7 +109,7 @@ def merge_duplicate_verses(
                 sanskrit_text=base.sanskrit_text,
                 shlokartha=shlokartha,
                 vivechan=vivechan,
-                page_number=base.page_number,
+                page_number=group[0].page_number,
                 warnings=all_warnings,
             )
         )

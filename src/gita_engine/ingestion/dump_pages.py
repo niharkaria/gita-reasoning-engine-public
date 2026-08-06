@@ -3,27 +3,7 @@ remaining problem spots in one pass instead of many separate greps."""
 
 import re
 
-TARGET_PAGES = {
-    117,
-    133,
-    176,
-    179,
-    209,
-    210,
-    251,
-    68,
-    77,
-    90,
-    91,
-    105,
-    106,
-    114,
-    120,
-    126,
-    127,
-    241,
-    262,
-}
+TARGET_PAGES = {117, 133, 176, 179, 209, 210, 251, 68, 77, 90, 91, 105, 106, 114, 120, 126, 127, 241, 262}
 
 with open("full_book.txt", encoding="utf-8") as f:
     text = f.read()
