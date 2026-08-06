@@ -84,6 +84,15 @@ _DANDA = r"[।॥|1]"
 # the same line.
 VERSE_END_RE = re.compile(_DANDA + r"+\s*([૦-૯](?:\s?[૦-૯1]){0,3})\s*" + _DANDA + r"+(?=[ \t]*\n)")
 COLOPHON_MARKER_RE = re.compile(r"ધ્યાયઃ?\s*$")
+# Page footers (e.g. "૧૧૮ અધ્યાય ૯" or "અધ્યાય ૯ ૧૨૩" — page number and
+# chapter name, printed at the bottom/top of every page) are real content
+# on the page but NOT part of any verse. When a verse's commentary spans
+# a page boundary, this footer text sits right in the middle of it and
+# gets swept in as if it were commentary (confirmed real bug — found via
+# spot-checking chapter 9 verse 15 and chapter 13 verse 20, where a page
+# footer literally appeared mid-sentence in the stored commentary). We
+# strip any line matching this isolated footer shape before splitting.
+FOOTER_LINE_RE = re.compile(r"^\s*(?:[૦-૯]+\s+)?અધ્યાય\s+[૦-૯]+(?:\s+[૦-૯]+)?\s*$", re.MULTILINE)
 SHLOKARTH_LABEL_RE = re.compile(r"શ્લોકાર્થ\s*[:ઃ]?")
 # વિવેચન ("elaboration") is the standard label, but some verses — notably
 # chapter-opening ones — use વિશેષ ("special note") instead for the same
@@ -321,6 +330,15 @@ def _split_chunk_into_commentary_and_shloka(chunk: str) -> tuple[str, str]:
     return commentary_text, shloka_text
 
 
+def _strip_page_artifacts(text: str) -> str:
+    """Remove ===PAGE N=== markers and standalone page-footer lines (page
+    number + chapter name) from a block of text — both are real page
+    furniture, never actual verse/commentary content."""
+    text = re.sub(r"===PAGE \d+===", "", text)
+    text = FOOTER_LINE_RE.sub("", text)
+    return text
+
+
 def parse_ocr_text(full_text: str) -> list[ParsedVerse]:
     """Parse OCR'd text (with ===PAGE N=== markers) into a list of ParsedVerse."""
     full_text = _normalize_chapter_five_misread(full_text)
@@ -392,7 +410,7 @@ def parse_ocr_text(full_text: str) -> list[ParsedVerse]:
 
         # Correctly handles shlokas printed as multiple blank-line-separated
         # padas, not just a single trailing line.
-        chunk_clean = re.sub(r"===PAGE \d+===", "", chunk)
+        chunk_clean = _strip_page_artifacts(chunk)
         commentary_text, shloka_text = _split_chunk_into_commentary_and_shloka(chunk_clean)
         shloka_text = shloka_text.strip()
 
@@ -420,7 +438,7 @@ def parse_ocr_text(full_text: str) -> list[ParsedVerse]:
     # The very last verse's commentary lives AFTER the final marker — attach it.
     if matches and verses:
         tail = full_text[matches[-1].end() :]
-        tail_clean = re.sub(r"===PAGE \d+===", "", tail).strip()
+        tail_clean = _strip_page_artifacts(tail).strip()
         if tail_clean:
             shlokartha, vivechan, split_warnings = _split_commentary(tail_clean)
             verses[-1].shlokartha = shlokartha
