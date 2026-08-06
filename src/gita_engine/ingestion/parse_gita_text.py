@@ -40,6 +40,15 @@ Known limitations (expect to refine once run against the full 320 pages):
       danda-separated numbers but are excluded because real verse markers
       always sit at the end of a line, while citations continue with more
       text on the same line.
+    - The Gujarati DIGIT ૫ (5) and the Gujarati LETTER પ ("pa") are visually
+      near-identical, and Tesseract consistently OCR's chapter-5 footers as
+      the letter instead of the digit (e.g. "અધ્યાય પ" instead of
+      "અધ્યાય ૫"). We normalize this one specific, confirmed substitution
+      before chapter detection — see _normalize_chapter_five_misread.
+    - A table-of-contents page (chapter names listed in a dense run, not
+      real page footers) can otherwise get picked up by chapter tracking
+      and mis-tag early verses. Runs of 3+ chapter markers packed close
+      together are detected and excluded as TOC, not real footers.
 """
 
 import re
@@ -49,11 +58,13 @@ GUJARATI_DIGIT_CHARS = "૦૧૨૩૪૫૬૭૮૯"
 GUJARATI_DIGITS = str.maketrans(GUJARATI_DIGIT_CHARS, "0123456789")
 
 CHAPTER_RE = re.compile(r"અધ્યાય\s*([૦-૯]+)")
-# Tolerant of missing/extra dandas (।+) and a stray Latin digit (1) that
-# OCR occasionally inserts; anchored to end-of-line to avoid matching
+# Tolerant of missing/extra dandas (।+), a stray Latin digit (1) that OCR
+# occasionally inserts, and a stray space INSIDE the number itself (e.g.
+# "૧ ૮।।" for what should be "૧૮।।" — confirmed real OCR defect specific
+# to certain digit pairs). Anchored to end-of-line to avoid matching
 # inline citations like "ભાગ.૧૦।૨।૨૬" which continue on the same line.
-VERSE_END_RE = re.compile(r"।+\s*([૦-૯1]{1,4})\s*।+(?=[ \t]*\n)")
-COLOPHON_MARKER_RE = re.compile(r"ધ્યાયઃ\s*$")
+VERSE_END_RE = re.compile(r"।+\s*([૦-૯1](?:\s?[૦-૯1]){0,3})\s*।+(?=[ \t]*\n)")
+COLOPHON_MARKER_RE = re.compile(r"ધ્યાયઃ?\s*$")
 SHLOKARTH_LABEL_RE = re.compile(r"શ્લોકાર્થ\s*[:ઃ]?")
 # વિવેચન ("elaboration") is the standard label, but some verses — notably
 # chapter-opening ones — use વિશેષ ("special note") instead for the same
@@ -75,6 +86,151 @@ def _is_colophon(full_text: str, match_start: int) -> bool:
     colophon (e.g. "નવમોડધ્યાયઃ ।।૯।।") rather than a real verse."""
     preceding = full_text[max(0, match_start - 40) : match_start]
     return bool(COLOPHON_MARKER_RE.search(preceding.rstrip()))
+
+
+def _is_spurious_marker(full_text: str, match_start: int, max_lookback: int = 400) -> bool:
+    """True if this verse-marker-shaped match is NOT closing a real shloka
+    pada, and should be discarded rather than treated as a new verse.
+
+    Two confirmed real cases this catches:
+    1. A shlokartha (translation) paragraph sometimes re-stamps the verse
+       number at ITS OWN end too (e.g. "...[EXAMPLE TEXT REDACTED]" repeating the
+       "59" the shloka itself already closed with).
+    2. An inline citation/cross-reference sentence (e.g. "...[EXAMPLE TEXT REDACTED]") happens to end in digits
+       shaped like a marker.
+
+    Both share a signature: the text immediately before the match, back to
+    the nearest blank line, is either too long to be a shloka pada or
+    contains a શ્લોકાર્થ/વિવેચન label — real shloka padas are always short
+    and label-free.
+    """
+    search_start = max(0, match_start - max_lookback)
+    window = full_text[search_start:match_start]
+    blank_line_matches = list(re.finditer(r"\n\s*\n", window))
+    segment = window[blank_line_matches[-1].end() :] if blank_line_matches else window
+    segment = segment.strip()
+
+    if not segment:
+        return False  # nothing precedes — treat as fine, not spurious
+    if len(segment) > 120:
+        return True
+    return bool(SHLOKARTH_LABEL_RE.search(segment) or VIVECHAN_LABEL_RE.search(segment))
+
+
+def _is_isolated_footer_line(
+    full_text: str, match_start: int, match_end: int, max_len: int = 25
+) -> bool:
+    """True if the line containing this chapter-marker match is short and
+    isolated — the shape of a real page footer (e.g. "અધ્યાય ૯ ૧૨૩",
+    "।। અધ્યાય ૬ ।।") — rather than an inline mention of a chapter number
+    buried inside a much longer prose sentence (e.g. commentary discussing
+    "chapter 18" while still on a chapter 12 page). Real footers are short,
+    standalone lines; inline mentions are part of long paragraph lines.
+    """
+    line_start = full_text.rfind("\n", 0, match_start) + 1
+    line_end = full_text.find("\n", match_end)
+    if line_end == -1:
+        line_end = len(full_text)
+    line = full_text[line_start:line_end].strip()
+    return len(line) <= max_len
+
+
+def _normalize_chapter_five_misread(full_text: str) -> str:
+    """Fix a confirmed, systematic OCR error: the Gujarati DIGIT ૫ (5) and
+    the visually near-identical Gujarati LETTER પ ("pa") get confused by
+    Tesseract, and every chapter-5 footer comes out as "અધ્યાય પ" instead
+    of "અધ્યાય ૫". Restricted to immediately after "અધ્યાય " (chapter
+    footers are the only place this substitution is safe — પ is a common
+    letter elsewhere in the text and must not be touched anywhere else).
+    """
+    return re.sub(r"(અધ્યાય\s+)પ(?=[\s।]|$)", r"\g<1>૫", full_text)
+
+
+# Known Gujarati letter/digit lookalikes that Tesseract confuses. Confirmed:
+# પ (letter "pa") <-> ૫ (digit 5); ર (letter "ra") <-> ૨ (digit 2) — the
+# latter found via a real verse marker OCR'd as "।।પર।।" (the real word
+# "para") where "૫૨" (52) was intended. Restricted to strictly inside a
+# verse-end marker's danda-bounded, end-of-line position — never applied
+# to general prose, where these are extremely common ordinary letters.
+_DIGIT_LOOKALIKE_LETTERS = {"પ": "૫", "ર": "૨"}
+_VERSE_MARKER_LETTER_FALLBACK_RE = re.compile(
+    r"(।+\s*)([" + "".join(_DIGIT_LOOKALIKE_LETTERS) + r"]{1,4})(\s*।+)(?=[ \t]*\n)"
+)
+
+
+def _normalize_verse_marker_letter_misreads(full_text: str) -> str:
+    """Fix confirmed letter/digit lookalike misreads, but ONLY when they
+    occur in a position that is unambiguously a verse-end marker (danda-
+    bounded, end of line, containing nothing but the lookalike letters).
+    Real prose using these very common letters is never touched, since a
+    normal sentence never sits entirely between two dandas at end of line.
+    """
+
+    def replace(match: re.Match[str]) -> str:
+        digits = "".join(_DIGIT_LOOKALIKE_LETTERS[ch] for ch in match.group(2))
+        return f"{match.group(1)}{digits}{match.group(3)}"
+
+    return _VERSE_MARKER_LETTER_FALLBACK_RE.sub(replace, full_text)
+
+
+# Chapter 18's opening page uses the Sanskrit ORDINAL WORD form ("અથ
+# અષ્ટાદશોડધ્યાયઃ" — "now, the eighteenth chapter") instead of the usual
+# digit form ("અધ્યાય ૧૮") every other chapter uses. Without recognizing
+# this, chapter tracking doesn't learn it's chapter 18 until the (also
+# OCR-damaged) footer at the bottom of that same page — by which point
+# that page's own opening verses have already been mistagged as chapter 17.
+CHAPTER_18_OPENING_RE = re.compile(r"અષ્ટાદશો?ડ?ધ્યાયઃ")
+
+# The Gita proper ends with chapter 18's closing colophon. This PDF bundles
+# additional supplementary treatises (e.g. "ન્યાસાદેશવિવરણમ્‌") AFTER that
+# point, each with its OWN independent verse-1, verse-2... numbering. Left
+# unhandled, that appendix numbering gets misattributed to "chapter 18"
+# and collides with the real chapter 18 verses. We truncate everything
+# after the first genuine chapter-18-ending colophon we find.
+FINAL_COLOPHON_RE = re.compile(r"અષ્ટાદશો?ડ?ધ્યાયઃ\s*।+\s*(?:[૦-૯1](?:\s?[૦-૯1]){0,3})\s*।+")
+
+
+def _truncate_after_final_colophon(full_text: str) -> str:
+    """Cut off any text after the Gita's final (chapter 18) colophon, so
+    appended supplementary treatises with their own verse numbering don't
+    get parsed as part of chapter 18."""
+    match = FINAL_COLOPHON_RE.search(full_text)
+    if match:
+        return full_text[: match.end()]
+    return full_text
+
+
+def _filter_toc_clusters(
+    chapter_positions: list[tuple[int, int]],
+    cluster_gap_threshold: int = 30,
+    min_cluster_size: int = 3,
+) -> list[tuple[int, int]]:
+    """Remove chapter markers that belong to a table-of-contents listing
+    rather than real per-page footers.
+
+    A TOC lists many chapter numbers in a dense run (e.g. "અધ્યાય ૧",
+    "અધ્યાય ૨", "અધ્યાય ૩"... each just a few characters apart). Real
+    footers are separated by a full page of content. We detect runs of
+    3+ markers packed within `cluster_gap_threshold` characters of each
+    other and drop the whole run.
+    """
+    if not chapter_positions:
+        return []
+
+    clusters: list[list[tuple[int, int]]] = [[chapter_positions[0]]]
+    for pos, chapter_num in chapter_positions[1:]:
+        prev_pos, _ = clusters[-1][-1]
+        if pos - prev_pos <= cluster_gap_threshold:
+            clusters[-1].append((pos, chapter_num))
+        else:
+            clusters.append([(pos, chapter_num)])
+
+    kept: list[tuple[int, int]] = []
+    for cluster in clusters:
+        if len(cluster) >= min_cluster_size:
+            continue  # looks like a TOC listing, drop it entirely
+        kept.extend(cluster)
+    return kept
 
 
 @dataclass
@@ -174,6 +330,10 @@ def _split_chunk_into_commentary_and_shloka(chunk: str) -> tuple[str, str]:
 
 def parse_ocr_text(full_text: str) -> list[ParsedVerse]:
     """Parse OCR'd text (with ===PAGE N=== markers) into a list of ParsedVerse."""
+    full_text = _normalize_chapter_five_misread(full_text)
+    full_text = _normalize_verse_marker_letter_misreads(full_text)
+    full_text = _truncate_after_final_colophon(full_text)
+
     # Track page number per character offset so we can attribute each verse
     # to the page it was found on (useful for debugging/spot-checking later).
     page_positions: list[tuple[int, int]] = [
@@ -190,9 +350,24 @@ def parse_ocr_text(full_text: str) -> list[ParsedVerse]:
         return current
 
     # Track chapter number similarly, but by nearest preceding occurrence.
-    chapter_positions: list[tuple[int, int]] = [
-        (m.start(), gujarati_number_to_int(m.group(1))) for m in CHAPTER_RE.finditer(full_text)
+    # Only isolated, footer-shaped lines count — inline mentions of a
+    # chapter number inside prose (e.g. commentary discussing another
+    # chapter while still on this one's pages) are excluded, and any
+    # remaining TOC-listing clusters are filtered out too. Chapter 18's
+    # word-form opening ("અષ્ટાદશોડધ્યાયઃ") is merged in separately since
+    # it doesn't match the digit-based CHAPTER_RE pattern at all.
+    raw_chapter_positions: list[tuple[int, int]] = [
+        (m.start(), gujarati_number_to_int(m.group(1)))
+        for m in CHAPTER_RE.finditer(full_text)
+        if _is_isolated_footer_line(full_text, m.start(), m.end())
     ]
+    raw_chapter_positions += [
+        (m.start(), 18)
+        for m in CHAPTER_18_OPENING_RE.finditer(full_text)
+        if _is_isolated_footer_line(full_text, m.start(), m.end())
+    ]
+    raw_chapter_positions.sort(key=lambda p: p[0])
+    chapter_positions = _filter_toc_clusters(raw_chapter_positions)
 
     def chapter_for_offset(offset: int) -> int | None:
         current = None
@@ -205,7 +380,9 @@ def parse_ocr_text(full_text: str) -> list[ParsedVerse]:
 
     verses: list[ParsedVerse] = []
     matches = [
-        m for m in VERSE_END_RE.finditer(full_text) if not _is_colophon(full_text, m.start())
+        m
+        for m in VERSE_END_RE.finditer(full_text)
+        if not _is_colophon(full_text, m.start()) and not _is_spurious_marker(full_text, m.start())
     ]
 
     for i, match in enumerate(matches):
