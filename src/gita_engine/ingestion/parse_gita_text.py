@@ -265,56 +265,59 @@ def _split_commentary(commentary_text: str) -> tuple[str | None, str | None, lis
     return shlokartha, vivechan, warnings
 
 
-def _is_verse_like(segment: str, *, require_danda_ending: bool = True) -> bool:
-    """Heuristic: does this blank-line-separated segment look like a shloka
-    pada (short poetic line) rather than commentary prose?
-
-    Shloka padas in this text are short AND end with a single danda (।) —
-    the traditional pada-separator punctuation. Prose sentences, even short
-    ones, end with a Gujarati/Latin period. Checking the ending punctuation
-    (not just length) avoids misclassifying short prose fragments — e.g. a
-    trailing "...has been done in the Subodhini above." — as verse text.
-    """
-    stripped = segment.strip()
-    if not stripped:
-        return False
-    if SHLOKARTH_LABEL_RE.search(stripped) or VIVECHAN_LABEL_RE.search(stripped):
-        return False
-    if len(stripped) > 120:
-        return False
-    return not require_danda_ending or stripped.endswith("।")
-
-
 def _split_chunk_into_commentary_and_shloka(chunk: str) -> tuple[str, str]:
     """Split a chunk (text between two verse-end markers) into
     (commentary_for_previous_verse, shloka_for_this_verse).
 
-    Shlokas are often printed as 2+ blank-line-separated padas, so we can't
-    just split on the single last blank line — we walk backward through
-    segments, greedily claiming verse-like ones (up to a sane cap) as part
-    of the shloka, and treat everything else as commentary. The segment
-    immediately adjacent to the verse-end marker is always included as
-    shloka (it never carries a trailing danda itself, since the marker's
-    own leading danda is what terminates it) — everything further back
-    must end in a danda to qualify.
+    Operates on individual LINES, not blank-line-delimited paragraphs.
+    This matters because blank-line separation between one verse's
+    commentary and the next verse's shloka is inconsistent throughout
+    this OCR'd text — on many pages there is no blank line at all. A
+    paragraph-based splitter treats the whole unbroken blob as a single
+    "paragraph" and force-includes ALL of it as the next verse's shloka,
+    silently leaving the actual previous verse with no commentary
+    whatsoever (confirmed real bug, traced against real page 68 text).
+
+    The signal that actually holds throughout this text regardless of
+    blank-line formatting: shloka padas end in a single danda (।), while
+    this book's commentary prose ends sentences in "." or "?". Walking
+    backward line-by-line and stopping at the first line that doesn't
+    look like a pada (too long, has a label, or doesn't end in danda)
+    correctly finds the shloka/commentary boundary even with zero blank
+    lines present. The single line immediately adjacent to the marker is
+    always included regardless (it never carries a trailing danda itself,
+    since the marker's own leading danda is what terminates it).
     """
-    segments = [s for s in re.split(r"\n\s*\n", chunk) if s.strip()]
-    if not segments:
+    lines = chunk.split("\n")
+
+    end = len(lines) - 1
+    while end >= 0 and not lines[end].strip():
+        end -= 1
+    if end < 0:
         return "", ""
 
     max_padas = 4  # generous cap; typical anushtubh shlokas are 2 padas
-    shloka_segments: list[str] = [segments[-1]]
-    split_index = len(segments) - 1
+    shloka_lines: list[str] = [lines[end].strip()]
+    idx = end - 1
 
-    for seg in reversed(segments[:-1]):
-        if len(shloka_segments) < max_padas and _is_verse_like(seg, require_danda_ending=True):
-            shloka_segments.insert(0, seg)
-            split_index -= 1
-        else:
+    while idx >= 0:
+        stripped = lines[idx].strip()
+        if not stripped:
+            idx -= 1  # blank lines don't break a pada run, just skip over them
+            continue
+        if len(shloka_lines) >= max_padas:
             break
+        if SHLOKARTH_LABEL_RE.search(stripped) or VIVECHAN_LABEL_RE.search(stripped):
+            break
+        if len(stripped) > 120:
+            break
+        if not stripped.endswith("।"):
+            break
+        shloka_lines.insert(0, stripped)
+        idx -= 1
 
-    commentary_text = "\n\n".join(segments[:split_index])
-    shloka_text = "\n\n".join(shloka_segments)
+    commentary_text = "\n".join(lines[: idx + 1]).strip()
+    shloka_text = "\n".join(shloka_lines).strip()
     return commentary_text, shloka_text
 
 

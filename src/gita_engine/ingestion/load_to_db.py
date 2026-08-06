@@ -43,7 +43,7 @@ from sqlalchemy.orm import Session
 from gita_engine.core.logging import configure_logging, get_logger
 from gita_engine.db.models import Commentary, Source, Translation, Verse
 from gita_engine.db.session import get_session
-from gita_engine.ingestion.parse_gita_text import ParsedVerse, _split_commentary, parse_ocr_text
+from gita_engine.ingestion.parse_gita_text import ParsedVerse, parse_ocr_text
 
 # --- Source metadata ---
 # Based on the front-matter seen in this PDF ("ગીતાતાત્પર્યમ્ : શ્રીવિટ્ઠલનાથ
@@ -63,24 +63,21 @@ def merge_duplicate_verses(
     """Group parsed verses by (chapter, verse_number) and merge any group
     with more than one entry.
 
-    Confirmed mechanism (verified by tracing the actual parse output, not
-    assumed): the FIRST entry's sanskrit_text is reliably the real shloka
-    pada — duplicates arise from a stray repeated verse-number marker
-    appearing AFTER the real shloka was already captured. Every
-    subsequent entry's sanskrit_text is actually overflow shlokartha/
-    vivechan text that got mislabeled as a shloka, because nothing in the
-    text between the spurious marker and the next real one looks like a
-    normal chunk boundary.
+    Confirmed mechanism (verified by tracing the actual parse output): the
+    FIRST entry is reliably the real verse, with correct shloka,
+    shlokartha, and vivechan — duplicates arise from a stray repeated
+    verse-number marker appearing AFTER the real verse's content was
+    already fully captured (e.g. a citation sentence coincidentally ending
+    in marker-shaped digits). Later entries are near-empty fragments or
+    stray overflow text from whatever follows the spurious marker.
 
-    We therefore trust entry 0's sanskrit_text as-is, then take EVERY
-    other captured field across ALL entries (including subsequent
-    entries' mislabeled sanskrit_text) and feed it back through
-    _split_commentary — the same label-based (શ્લોકાર્થ/વિવેચન) splitter
-    used during normal parsing — rather than guessing by string length,
-    which we found actively picks the WRONG value (the mislabeled
-    overflow text is often longer than the real shloka, so a naive
-    "keep the longest" rule would have overwritten the real shloka with
-    translation text).
+    We therefore simply prefer entry 0's fields, falling back to a later
+    entry's field only if entry 0 is missing it. We do NOT attempt to
+    re-split or recombine text across entries — an earlier version of this
+    function did that by concatenating already-split shlokartha/vivechan
+    text and re-running the label-based splitter, which failed because the
+    labels had already been stripped out during the original split,
+    causing correct content to be silently misfiled as "no label found."
     """
     groups: dict[tuple[int, int], list[ParsedVerse]] = defaultdict(list)
     for pv in parsed_verses:
@@ -97,37 +94,23 @@ def merge_duplicate_verses(
 
         merged_keys.append((chapter, verse_number))
 
-        real_shloka = group[0].sanskrit_text
-
-        raw_pieces: list[str] = []
-        if group[0].shlokartha:
-            raw_pieces.append(group[0].shlokartha)
-        if group[0].vivechan:
-            raw_pieces.append(group[0].vivechan)
-        for g in group[1:]:
-            if g.sanskrit_text:
-                raw_pieces.append(g.sanskrit_text)
-            if g.shlokartha:
-                raw_pieces.append(g.shlokartha)
-            if g.vivechan:
-                raw_pieces.append(g.vivechan)
-
-        combined = "\n".join(raw_pieces)
-        shlokartha, vivechan, split_warnings = (
-            _split_commentary(combined) if combined else (None, None, [])
+        base = group[0]
+        shlokartha = base.shlokartha or next(
+            (g.shlokartha for g in group[1:] if g.shlokartha), None
         )
+        vivechan = base.vivechan or next((g.vivechan for g in group[1:] if g.vivechan), None)
 
-        all_warnings = sorted({w for g in group for w in g.warnings} | set(split_warnings))
+        all_warnings = sorted({w for g in group for w in g.warnings})
         all_warnings.append(f"merged_from_{len(group)}_duplicate_entries")
 
         merged.append(
             ParsedVerse(
                 chapter=chapter,
                 verse_number=verse_number,
-                sanskrit_text=real_shloka,
+                sanskrit_text=base.sanskrit_text,
                 shlokartha=shlokartha,
                 vivechan=vivechan,
-                page_number=group[0].page_number,
+                page_number=base.page_number,
                 warnings=all_warnings,
             )
         )
