@@ -36,6 +36,11 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     api_host: str = "0.0.0.0"
     api_port: int = 8000
+    # Comma-separated list of allowed CORS origins. Defaults to local dev
+    # only. On Railway, set CORS_ALLOWED_ORIGINS to a comma-separated
+    # list including the deployed Vercel URL, e.g.
+    # "http://localhost:3000,https://your-app.vercel.app"
+    cors_allowed_origins: str = "http://localhost:3000"
 
     # --- PostgreSQL ---
     postgres_host: str = "localhost"
@@ -64,6 +69,11 @@ class Settings(BaseSettings):
     langfuse_public_key: str = ""
     langfuse_secret_key: str = Field(default="", repr=False)
     langfuse_host: str = "https://cloud.langfuse.com"
+
+    @property
+    def cors_allowed_origins_list(self) -> list[str]:
+        """Parsed, whitespace-trimmed list of allowed CORS origins."""
+        return [origin.strip() for origin in self.cors_allowed_origins.split(",") if origin.strip()]
 
     @property
     def postgres_dsn(self) -> str:

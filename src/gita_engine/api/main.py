@@ -14,6 +14,7 @@ from slowapi.errors import RateLimitExceeded
 
 from gita_engine.api.rate_limit import limiter
 from gita_engine.api.routes import router
+from gita_engine.core.config import get_settings
 from gita_engine.core.logging import configure_logging
 
 configure_logging()
@@ -32,12 +33,13 @@ def create_app() -> FastAPI:
     # wire this up and works fine at runtime.
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
 
-    # Permissive CORS for local dev — the Next.js frontend runs on a
-    # different port (3000) than the API (8000). Tighten this before
-    # any real public deployment.
+    # Allowed origins are read from CORS_ALLOWED_ORIGINS (see config.py),
+    # defaulting to local dev only. Set this env var on Railway to
+    # include the deployed Vercel URL for real public deployment.
+    settings = get_settings()
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:3000"],
+        allow_origins=settings.cors_allowed_origins_list,
         allow_methods=["*"],
         allow_headers=["*"],
     )
