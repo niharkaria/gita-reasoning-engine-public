@@ -20,7 +20,13 @@ config = context.config
 # Override the sqlalchemy.url from alembic.ini with our validated Settings,
 # so there's one source of truth for the DSN (see core/config.py) instead
 # of keeping the connection string duplicated in alembic.ini.
-config.set_main_option("sqlalchemy.url", get_settings().postgres_dsn)
+# ConfigParser (used internally by Alembic's Config) treats "%" as its own
+# interpolation syntax, which collides with a percent-encoded character
+# (e.g. "%40" for "@") in a DB password. Escaping "%" as "%%" here tells
+# ConfigParser to treat it as a literal percent sign, not the start of an
+# interpolation directive.
+_dsn = get_settings().postgres_dsn.replace("%", "%%")
+config.set_main_option("sqlalchemy.url", _dsn)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
