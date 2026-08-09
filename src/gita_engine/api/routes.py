@@ -4,12 +4,13 @@ Why this file exists:
     Translates HTTP requests into calls on the reasoning pipeline
     (answer_question) and shapes the result into the API's response
     schema, with proper HTTP error handling for the failure modes we
-    already know about (missing HF_API_TOKEN, DB connection issues).
+    already know about (missing GROQ_API_KEY, DB connection issues).
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from sqlalchemy import text as sql_text
 
+from gita_engine.api.rate_limit import limiter
 from gita_engine.api.schemas import AskRequest, AskResponse, CitedPassage, HealthResponse
 from gita_engine.core.logging import get_logger
 from gita_engine.db.session import get_session
@@ -36,10 +37,17 @@ def health() -> HealthResponse:
 
 
 @router.post("/ask", response_model=AskResponse)
-def ask(request: AskRequest) -> AskResponse:
-    """Answer a question about the Gita, grounded in the accepted corpus."""
+@limiter.limit("8/minute")
+def ask(request: Request, body: AskRequest) -> AskResponse:
+    """Answer a question about the Gita, grounded in the accepted corpus.
+
+    Rate-limited per IP (8/minute) — this endpoint triggers a real Groq
+    API call each time it's hit, and the goal is just to stop a bot or
+    crawler from burning through Groq's free-tier rate limits, not to
+    build a sophisticated abuse-prevention system.
+    """
     try:
-        result = answer_question(request.question)
+        result = answer_question(body.question)
     except GenerationError as e:
         logger.error("ask_generation_failed", error=str(e))
         raise HTTPException(
@@ -61,4 +69,4 @@ def ask(request: AskRequest) -> AskResponse:
         for p in result["retrieved"]
     ]
 
-    return AskResponse(question=request.question, answer=result["answer"], citations=citations)
+    return AskResponse(question=body.question, answer=result["answer"], citations=citations)

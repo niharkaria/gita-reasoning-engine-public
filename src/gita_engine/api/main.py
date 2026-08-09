@@ -9,7 +9,10 @@ Why this file exists:
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
+from gita_engine.api.rate_limit import limiter
 from gita_engine.api.routes import router
 from gita_engine.core.logging import configure_logging
 
@@ -22,6 +25,12 @@ def create_app() -> FastAPI:
         description="Retrieval-grounded Q&A over a defined Pushtimarg Bhagavad Gita corpus.",
         version="0.1.0",
     )
+
+    app.state.limiter = limiter
+    # slowapi's handler signature doesn't exactly match Starlette's typed
+    # exception-handler protocol, but it's the documented, correct way to
+    # wire this up and works fine at runtime.
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
 
     # Permissive CORS for local dev — the Next.js frontend runs on a
     # different port (3000) than the API (8000). Tighten this before
