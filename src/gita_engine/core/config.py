@@ -52,7 +52,12 @@ class Settings(BaseSettings):
     # --- Models ---
     embedding_model: str = "BAAI/bge-m3"
     reranker_model: str = "BAAI/bge-reranker-v2-m3"
-    generation_model: str = "Qwen/Qwen2.5-Instruct"
+    # Generation now runs via Groq's free tier (real rate limits, not a
+    # tiny spending credit like Hugging Face's Inference API). Verify the
+    # exact model ID in your Groq console before relying on this default —
+    # model slugs on hosted providers change.
+    generation_model: str = "qwen/qwen3-32b"
+    groq_api_key: str = Field(default="", repr=False)
     hf_api_token: str = Field(default="", repr=False)
 
     # --- Evaluation / Observability ---
