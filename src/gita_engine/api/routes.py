@@ -4,7 +4,8 @@ Why this file exists:
     Translates HTTP requests into calls on the reasoning pipeline
     (answer_question) and shapes the result into the API's response
     schema, with proper HTTP error handling for the failure modes we
-    already know about (missing GROQ_API_KEY, DB connection issues).
+    already know about (missing GROQ_API_KEY, DB connection issues,
+    embedding API unavailability).
 """
 
 from fastapi import APIRouter, HTTPException, Request
@@ -16,6 +17,7 @@ from gita_engine.core.logging import get_logger
 from gita_engine.db.session import get_session
 from gita_engine.generation.llm_client import GenerationError
 from gita_engine.reasoning.graph import answer_question
+from gita_engine.retrieval.retriever import EmbeddingError
 
 logger = get_logger(__name__)
 
@@ -48,6 +50,12 @@ def ask(request: Request, body: AskRequest) -> AskResponse:
     """
     try:
         result = answer_question(body.question)
+    except EmbeddingError as e:
+        logger.error("ask_embedding_failed", error=str(e))
+        raise HTTPException(
+            status_code=502,
+            detail=f"The embedding model is unavailable: {e}",
+        ) from e
     except GenerationError as e:
         logger.error("ask_generation_failed", error=str(e))
         raise HTTPException(
