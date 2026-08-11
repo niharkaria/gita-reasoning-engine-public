@@ -13,20 +13,39 @@ Design notes:
     - pgvector's `<=>` operator computes cosine DISTANCE (0 = identical,
       2 = opposite), not similarity — we convert to a similarity score
       (1 - distance) for a more intuitive 0..1-ish scale in results.
-    - Embedding the query itself happens via BGE-M3 loaded locally
-      (see embed_query below). This is fine for a SINGLE short query at
-      request time — it's bulk-encoding ~1200 corpus texts that needed
-      Kaggle's GPU, not one-off query embedding.
+    - Embedding the query itself happens via Hugging Face's hosted
+      Inference API (see embed_query below), NOT loaded locally. This
+      changed from an earlier local sentence-transformers approach after
+      that caused an OOM crash on Render's free tier (512MB total RAM,
+      nowhere near enough to load BGE-M3's ~2.2GB weights). Calling the
+      same model via HF's API keeps query/corpus embeddings comparable
+      without the API process ever needing to hold model weights.
 """
 
 from dataclasses import dataclass
 
+import httpx
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from gita_engine.core.config import get_settings
+from gita_engine.core.logging import get_logger
 from gita_engine.db.models import Commentary, Source, Translation, Verse
 
+logger = get_logger(__name__)
+
 TOP_K_DEFAULT = 5
+
+# NOTE: HF's OLD endpoint (api-inference.huggingface.co) is fully
+# deprecated — doesn't resolve via DNS anymore. Must use the NEW
+# router.huggingface.co domain with this feature-extraction-specific path.
+HF_EMBEDDING_URL = (
+    "https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction"
+)
+
+
+class EmbeddingError(Exception):
+    """Raised when the embedding API call fails or returns an unusable response."""
 
 
 @dataclass
@@ -44,25 +63,49 @@ class RetrievedPassage:
 
 
 def embed_query(query: str) -> list[float]:
-    """Embed a single query string using BGE-M3, loaded locally.
+    """Embed a single query string using BGE-M3, via Hugging Face's hosted
+    Inference API (router.huggingface.co) rather than loading the model
+    locally.
 
-    NOT tested in this sandbox — no GPU/network access to download model
-    weights here. Encoding ONE short query on CPU is expected to take low
-    seconds, which is fine for interactive use; this is a fundamentally
-    different workload from bulk-encoding the ~1200-text corpus (which is
-    why that step runs on Kaggle instead). Verify timing on your machine
-    once you have the `sentence-transformers` package installed.
+    Uses the SAME model (BAAI/bge-m3) as the corpus embeddings already
+    stored in Supabase (generated on Kaggle), so query and corpus vectors
+    stay comparable — only *how* the query embedding is computed changed,
+    not the model itself.
+
+    NOTE on response shape: confirmed via a real curl test that the
+    response for a single-item `inputs` list is NESTED —
+    `[[float, float, ...]]` — so we need [0] to get the actual vector,
+    not just JSON-parsing the top level directly.
     """
-    from sentence_transformers import SentenceTransformer
+    settings = get_settings()
+    if not settings.hf_api_token:
+        raise EmbeddingError(
+            "HF_API_TOKEN is not set in .env — required to call the embedding API."
+        )
 
-    # Cached at module level so repeated calls (e.g. multiple queries in
-    # one process) don't reload the model from disk every time.
-    if not hasattr(embed_query, "_model"):
-        embed_query._model = SentenceTransformer("BAAI/bge-m3", device="cpu")  # type: ignore[attr-defined]
+    headers = {"Authorization": f"Bearer {settings.hf_api_token}"}
+    payload = {"inputs": [query]}
 
-    model = embed_query._model  # type: ignore[attr-defined]
-    embedding = model.encode(query, normalize_embeddings=True)
-    return list(embedding.tolist())
+    logger.info("calling_embedding_model", model=settings.embedding_model)
+
+    try:
+        response = httpx.post(HF_EMBEDDING_URL, headers=headers, json=payload, timeout=30.0)
+        response.raise_for_status()
+    except httpx.HTTPError as e:
+        logger.error("embedding_request_failed", error=str(e))
+        raise EmbeddingError(f"Embedding API call failed: {e}") from e
+
+    data = response.json()
+    try:
+        # Nested response for a single-item `inputs` list: [[float, ...]].
+        embedding = data[0]
+        if not isinstance(embedding, list) or not embedding:
+            raise ValueError("embedding is empty or not a list")
+    except (KeyError, IndexError, TypeError, ValueError) as e:
+        logger.error("embedding_response_unparseable", response=data)
+        raise EmbeddingError(f"Unexpected response shape from embedding API: {data}") from e
+
+    return [float(x) for x in embedding]
 
 
 def retrieve(
