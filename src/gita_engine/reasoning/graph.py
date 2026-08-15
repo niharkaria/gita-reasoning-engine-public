@@ -31,6 +31,20 @@ from gita_engine.retrieval.retriever import RetrievedPassage, embed_query, retri
 
 logger = get_logger(__name__)
 
+# NOTE: A reranker step (widen to top-20 via embedding search, then use
+# BAAI/bge-reranker-v2-m3 to narrow to the best 5) was tried and reverted
+# on 2026-08-15. Tested 3 different text-pairing strategies (Gujarati
+# text, Sanskrit shlok, both combined) against a known ground-truth
+# question ("who is the true enjoyer of sacrifices?", answered directly
+# by 5.29) — all 3 gave IDENTICAL results, consistently ranking 5.29
+# below 4 less-relevant passages. This wasn't noise or a text-pairing
+# issue; the reranker itself was not reliably improving relevance for
+# this corpus/language combination (English query vs Gujarati/Sanskrit
+# passages) and was actively worse than plain embedding search on the
+# one case with clear ground truth. Reverted to plain embedding-only
+# retrieval. The reranker code remains in reranker.py, unused, in case
+# a different model or approach is worth trying later.
+
 SYSTEM_PROMPT = """You are a reasoning engine that answers questions about the Bhagavad Gita STRICTLY according to the accepted commentary passages provided to you below.
 
 Rules:
