@@ -19,6 +19,18 @@ because the <think> block itself can consume a large chunk of the
 budget before the model ever reaches the real answer — confirmed via a
 real call that got cut off (finish_reason="length") entirely inside the
 <think> block at only 100 tokens.
+
+KNOWN FAILURE MODE (found 2026-08-11, real production bug): for broad
+questions requiring long reasoning, the model can burn through the
+ENTIRE max_tokens budget while still inside <think>...</think>, meaning
+no closing </think> tag is ever emitted. The old strip-a-matched-pair
+regex found nothing to strip in that case, so the raw internal
+reasoning (thousands of words of scratchpad) was returned directly to
+the user as if it were the real answer — a real leak of internal
+reasoning, not just a cosmetic issue. Fixed by explicitly detecting an
+UNCLOSED <think> tag and treating it the same as the existing
+reasoning-only-no-answer case: raise GenerationError with a clear
+message, rather than silently returning garbage.
 """
 
 import re
@@ -33,6 +45,7 @@ logger = get_logger(__name__)
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 _THINK_BLOCK_RE = re.compile(r"<think>.*?</think>", flags=re.DOTALL)
+_UNCLOSED_THINK_RE = re.compile(r"<think>(?!.*</think>)", flags=re.DOTALL)
 
 
 class GenerationError(Exception):
@@ -86,6 +99,23 @@ def generate(
     except (KeyError, IndexError) as e:
         logger.error("generation_response_unparseable", response=data)
         raise GenerationError(f"Unexpected response shape from generation API: {data}") from e
+
+    # Detect an UNCLOSED <think> tag first — this means the model burned
+    # its entire max_tokens budget still inside internal reasoning and
+    # never got to a real answer. Must check this BEFORE stripping,
+    # because the strip regex would simply find no match and silently
+    # pass the raw reasoning straight through as if it were the answer.
+    if _UNCLOSED_THINK_RE.search(raw_content):
+        logger.error(
+            "generation_unclosed_think_block",
+            finish_reason=finish_reason,
+            content_length=len(raw_content),
+        )
+        raise GenerationError(
+            "Generation model ran out of tokens while still reasoning internally "
+            f"(no closing </think> tag found) — finish_reason={finish_reason!r}. "
+            "Try increasing max_tokens or narrowing the question."
+        )
 
     answer = _THINK_BLOCK_RE.sub("", raw_content).strip()
 
