@@ -71,6 +71,7 @@ def ask(request: Request, body: AskRequest) -> AskResponse:
             chapter=p.chapter,
             verse_number=p.verse_number,
             passage_type=p.passage_type,
+            sanskrit_text=p.sanskrit_text,
             text=p.text,
             similarity=p.similarity,
         )

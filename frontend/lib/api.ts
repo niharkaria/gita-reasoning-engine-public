@@ -2,6 +2,7 @@ export interface CitedPassage {
   chapter: number;
   verse_number: number;
   passage_type: "translation" | "commentary";
+  sanskrit_text: string;
   text: string;
   similarity: number;
 }

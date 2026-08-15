@@ -18,6 +18,7 @@ class CitedPassage(BaseModel):
     chapter: int
     verse_number: int
     passage_type: str  # 'translation' | 'commentary'
+    sanskrit_text: str
     text: str
     similarity: float
 

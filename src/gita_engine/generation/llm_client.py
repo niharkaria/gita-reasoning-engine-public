@@ -31,6 +31,29 @@ reasoning, not just a cosmetic issue. Fixed by explicitly detecting an
 UNCLOSED <think> tag and treating it the same as the existing
 reasoning-only-no-answer case: raise GenerationError with a clear
 message, rather than silently returning garbage.
+
+FOLLOW-UP (found same day): even with the leak fixed, max_tokens=3072
+was still too tight after the system prompt grew (added an instruction
+to preserve Sanskrit/Gujarati terms) — the model would sometimes close
+</think> properly but then get cut off mid-sentence while writing the
+real answer (finish_reason="length", answer silently truncated, e.g.
+'The atman is નિત્ય (' with no closing).
+
+First attempted fix: raised max_tokens to 6144. This immediately hit
+Groq's real constraint for qwen/qwen3.6-27b on the free tier: TPM
+(tokens per minute) = 8000, and this covers INPUT + OUTPUT combined,
+not just the generated answer. Retrieved passages can include long
+Gujarati commentary blocks (some several hundred words), so a single
+request's system prompt + retrieved passages + question can already
+be 1500-3000+ input tokens — at max_tokens=6144, a single request
+could exceed the entire 8000 TPM budget by itself, causing an
+immediate 413 Payload Too Large regardless of other traffic (waiting
+between requests did not help, confirming this).
+
+Settled on max_tokens=4096 — meaningfully more headroom than the
+original 3072 (should prevent the truncation), while staying with
+safety margin under the real 8000 TPM ceiling even on requests with
+longer retrieved passages.
 """
 
 import re
@@ -56,7 +79,7 @@ def generate(
     system_prompt: str,
     user_prompt: str,
     *,
-    max_tokens: int = 3072,
+    max_tokens: int = 4096,
     temperature: float = 0.2,
 ) -> str:
     """Call the configured generation model (via Groq) and return its text
