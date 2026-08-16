@@ -49,7 +49,7 @@ def evaluate(golden_set_path: Path, top_k: int = 5) -> None:
         with get_session() as session:
             results = retrieve(session, query_embedding, top_k=top_k)
 
-        retrieved_keys = [(p.chapter, p.verse_number) for p in results]
+        retrieved_keys = list(dict.fromkeys((p.chapter, p.verse_number) for p in results))
 
         rank = next(
             (i + 1 for i, key in enumerate(retrieved_keys) if key in expected),

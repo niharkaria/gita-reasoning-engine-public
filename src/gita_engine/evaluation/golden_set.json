@@ -4,21 +4,223 @@
     {
       "question": "What happens to the soul when the body dies?",
       "expected_verses": [
-        { "chapter": 2, "verse_number": 27 },
-        { "chapter": 2, "verse_number": 28 }
+        {
+          "chapter": 2,
+          "verse_number": 27
+        },
+        {
+          "chapter": 2,
+          "verse_number": 28
+        },
+        {
+          "chapter": 2,
+          "verse_number": 26
+        },
+        {
+          "chapter": 2,
+          "verse_number": 20
+        }
       ]
     },
     {
       "question": "Who is the true enjoyer and lord of all sacrifices?",
       "expected_verses": [
-        { "chapter": 9, "verse_number": 24 }
+        {
+          "chapter": 9,
+          "verse_number": 24
+        },
+        {
+          "chapter": 5,
+          "verse_number": 29
+        }
       ]
     },
     {
       "question": "Show me Krishna's universal form with many faces and eyes.",
       "expected_verses": [
-        { "chapter": 11, "verse_number": 5 },
-        { "chapter": 11, "verse_number": 6 }
+        {
+          "chapter": 11,
+          "verse_number": 5
+        },
+        {
+          "chapter": 11,
+          "verse_number": 6
+        }
+      ]
+    },
+    {
+      "question": "I freeze up before a hard decision -- my hands shake, my mind goes blank, I can't function. What does Krishna show us through Arjuna in this moment?",
+      "expected_verses": [
+        {
+          "chapter": 1,
+          "verse_number": 28
+        },
+        {
+          "chapter": 1,
+          "verse_number": 29
+        },
+        {
+          "chapter": 1,
+          "verse_number": 30
+        }
+      ]
+    },
+    {
+      "question": "As someone others look up to (at work, at home), how much does my own behavior actually shape the people around me?",
+      "expected_verses": [
+        {
+          "chapter": 3,
+          "verse_number": 21
+        }
+      ]
+    },
+    {
+      "question": "I've made serious mistakes in my past and feel unworthy. Is there really a way back?",
+      "expected_verses": [
+        {
+          "chapter": 4,
+          "verse_number": 36
+        }
+      ]
+    },
+    {
+      "question": "How do I stop being ruled by my anger and cravings? Is real happiness even possible while they're this strong?",
+      "expected_verses": [
+        {
+          "chapter": 5,
+          "verse_number": 22
+        },
+        {
+          "chapter": 5,
+          "verse_number": 23
+        }
+      ]
+    },
+    {
+      "question": "I keep overdoing everything -- work, food, even rest. What does the Gita say about finding balance?",
+      "expected_verses": [
+        {
+          "chapter": 6,
+          "verse_number": 16
+        },
+        {
+          "chapter": 6,
+          "verse_number": 17
+        }
+      ]
+    },
+    {
+      "question": "I only think of God when I'm in trouble. Is that a weak or unworthy kind of faith?",
+      "expected_verses": [
+        {
+          "chapter": 7,
+          "verse_number": 16
+        }
+      ]
+    },
+    {
+      "question": "I want to feel God's presence in daily life, not just in a crisis. How do I actually stay connected?",
+      "expected_verses": [
+        {
+          "chapter": 8,
+          "verse_number": 14
+        },
+        {
+          "chapter": 12,
+          "verse_number": 8
+        }
+      ]
+    },
+    {
+      "question": "I feel lost and confused about which way to go in life. Where does real clarity come from?",
+      "expected_verses": [
+        {
+          "chapter": 10,
+          "verse_number": 10
+        },
+        {
+          "chapter": 10,
+          "verse_number": 11
+        }
+      ]
+    },
+    {
+      "question": "How do I stop being so reactive -- to criticism, to people who upset me -- and find real inner steadiness?",
+      "expected_verses": [
+        {
+          "chapter": 12,
+          "verse_number": 13
+        },
+        {
+          "chapter": 12,
+          "verse_number": 14
+        },
+        {
+          "chapter": 12,
+          "verse_number": 15
+        }
+      ]
+    },
+    {
+      "question": "I don't feel spiritually advanced or wise myself. Is it enough to simply listen to and trust those who are?",
+      "expected_verses": [
+        {
+          "chapter": 13,
+          "verse_number": 25
+        },
+        {
+          "chapter": 18,
+          "verse_number": 71
+        }
+      ]
+    },
+    {
+      "question": "My moods swing so much with what's happening around me. How do I stop being at their mercy?",
+      "expected_verses": [
+        {
+          "chapter": 14,
+          "verse_number": 26
+        }
+      ]
+    },
+    {
+      "question": "I know exactly what's holding me back -- old attachments -- but I can't seem to cut free. What does Krishna say to do?",
+      "expected_verses": [
+        {
+          "chapter": 15,
+          "verse_number": 3
+        },
+        {
+          "chapter": 15,
+          "verse_number": 4
+        }
+      ]
+    },
+    {
+      "question": "What are the real root causes of self-destructive behavior, and how do I actually get free of them?",
+      "expected_verses": [
+        {
+          "chapter": 16,
+          "verse_number": 21
+        }
+      ]
+    },
+    {
+      "question": "Does what I eat and how I live really affect my mind and spirit, according to the Gita?",
+      "expected_verses": [
+        {
+          "chapter": 17,
+          "verse_number": 8
+        }
+      ]
+    },
+    {
+      "question": "I'm exhausted trying to do everything 'right.' Is there a final, simplest refuge Krishna offers?",
+      "expected_verses": [
+        {
+          "chapter": 18,
+          "verse_number": 66
+        }
       ]
     }
   ]
