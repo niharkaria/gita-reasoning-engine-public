@@ -32,18 +32,33 @@ from gita_engine.retrieval.retriever import RetrievedPassage, embed_query, retri
 logger = get_logger(__name__)
 
 # NOTE: A reranker step (widen to top-20 via embedding search, then use
-# BAAI/bge-reranker-v2-m3 to narrow to the best 5) was tried and reverted
-# on 2026-08-15. Tested 3 different text-pairing strategies (Gujarati
-# text, Sanskrit shlok, both combined) against a known ground-truth
-# question ("who is the true enjoyer of sacrifices?", answered directly
-# by 5.29) — all 3 gave IDENTICAL results, consistently ranking 5.29
-# below 4 less-relevant passages. This wasn't noise or a text-pairing
-# issue; the reranker itself was not reliably improving relevance for
-# this corpus/language combination (English query vs Gujarati/Sanskrit
-# passages) and was actively worse than plain embedding search on the
-# one case with clear ground truth. Reverted to plain embedding-only
-# retrieval. The reranker code remains in reranker.py, unused, in case
-# a different model or approach is worth trying later.
+# BAAI/bge-reranker-v2-m3 to narrow to the best 5) has now been tested
+# TWICE and reverted twice:
+#
+# 2026-08-15: Tested against ONE ground-truth question ("who is the true
+# enjoyer of sacrifices?", answered by 5.29) across 3 text-pairing
+# strategies. All 3 ranked 5.29 below 4 less-relevant passages. This was
+# later flagged as too thin an evidence base for a corpus-wide claim.
+#
+# 2026-08-30: Re-tested properly against the full audited 18-question
+# golden set (see docs/phases/phase_7b_golden_set_expansion_findings.md
+# for the audit). Result: Hit Rate@5 dropped from 61.11% (11/18) baseline
+# to 44.44% (8/18) with reranking on; MRR dropped from 0.556 to 0.301.
+# 7 previously-correct hits became misses; none of the 7 known genuine
+# baseline misses were fixed. The known "attractor verse" problem (1.30,
+# 16.14 scoring falsely high) got WORSE under reranking, not better,
+# appearing as false top-hits in more questions than at baseline.
+#
+# Conclusion: the 2026-08-15 revert decision was correct, now on solid
+# evidence rather than a single data point. This reranker
+# (BAAI/bge-reranker-v2-m3) is not a good fit for this corpus/language
+# pairing (English query vs Gujarati/Sanskrit commentary). Don't
+# re-attempt with this same model; a different reranker model, or a
+# different text-pairing strategy, would be a genuinely new experiment,
+# not a retry of this one. reranker.py's rerank() and
+# evaluate_retrieval.py's --rerank flag are left in place so any future
+# reranker experiment has a ready-made, already-proven-fair A/B harness
+# to test against.
 
 SYSTEM_PROMPT = """You are a reasoning engine that answers questions about the Bhagavad Gita STRICTLY according to the accepted commentary passages provided to you below.
 

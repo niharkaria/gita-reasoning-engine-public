@@ -85,7 +85,7 @@ def rerank(query: str, passages: list[RetrievedPassage], top_k: int) -> list[Ret
             _build_rerank_url(settings.reranker_model),
             headers=headers,
             json=payload,
-            timeout=60.0,
+            timeout=120.0,
         )
         response.raise_for_status()
     except httpx.HTTPError as e:

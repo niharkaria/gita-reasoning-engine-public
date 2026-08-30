@@ -16,6 +16,7 @@ Metrics:
 
 Usage:
     python evaluate_retrieval.py [path/to/golden_set.json]
+    python evaluate_retrieval.py --rerank   (widen to 20, then rerank down to top_k)
 """
 
 import json
@@ -24,14 +25,21 @@ from pathlib import Path
 
 from gita_engine.core.logging import get_logger
 from gita_engine.db.session import get_session
+from gita_engine.retrieval.reranker import rerank
 from gita_engine.retrieval.retriever import embed_query, retrieve
 
 logger = get_logger(__name__)
 
 DEFAULT_GOLDEN_SET = Path(__file__).parent / "golden_set.json"
 
+# Pool size to retrieve before reranking narrows it down. Matches
+# RERANK_POOL_SIZE in reasoning/graph.py — keep these in sync if either
+# changes, since we want the eval to test the exact same pipeline shape
+# that production actually runs.
+RERANK_POOL_SIZE = 20
 
-def evaluate(golden_set_path: Path, top_k: int = 5) -> None:
+
+def evaluate(golden_set_path: Path, top_k: int = 5, use_rerank: bool = False) -> None:
     with open(golden_set_path, encoding="utf-8") as f:
         golden_set = json.load(f)
 
@@ -39,7 +47,8 @@ def evaluate(golden_set_path: Path, top_k: int = 5) -> None:
     hits = 0
     reciprocal_ranks: list[float] = []
 
-    print(f"Evaluating retrieval on {len(cases)} test cases (top_k={top_k})...\n")
+    mode = "WITH reranking" if use_rerank else "embedding-only"
+    print(f"Evaluating retrieval on {len(cases)} test cases (top_k={top_k}, {mode})...\n")
 
     for case in cases:
         question = case["question"]
@@ -47,7 +56,11 @@ def evaluate(golden_set_path: Path, top_k: int = 5) -> None:
 
         query_embedding = embed_query(question)
         with get_session() as session:
-            results = retrieve(session, query_embedding, top_k=top_k)
+            retrieve_k = RERANK_POOL_SIZE if use_rerank else top_k
+            results = retrieve(session, query_embedding, top_k=retrieve_k)
+
+        if use_rerank:
+            results = rerank(question, results, top_k=top_k)
 
         retrieved_keys = list(dict.fromkeys((p.chapter, p.verse_number) for p in results))
 
@@ -78,5 +91,8 @@ def evaluate(golden_set_path: Path, top_k: int = 5) -> None:
 
 
 if __name__ == "__main__":
-    path = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_GOLDEN_SET
-    evaluate(path)
+    args = sys.argv[1:]
+    use_rerank = "--rerank" in args
+    positional = [a for a in args if a != "--rerank"]
+    path = Path(positional[0]) if positional else DEFAULT_GOLDEN_SET
+    evaluate(path, use_rerank=use_rerank)
