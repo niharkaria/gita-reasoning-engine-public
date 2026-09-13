@@ -62,7 +62,7 @@ class RetrievedPassage:
     similarity: float
 
 
-def embed_query(query: str) -> list[float]:
+def embed_query(query: str, *, prefix: str | None = None) -> list[float]:
     """Embed a single query string using BGE-M3, via Hugging Face's hosted
     Inference API (router.huggingface.co) rather than loading the model
     locally.
@@ -71,6 +71,17 @@ def embed_query(query: str) -> list[float]:
     stored in Supabase (generated on Kaggle), so query and corpus vectors
     stay comparable — only *how* the query embedding is computed changed,
     not the model itself.
+
+    prefix: optional instruction text prepended to the query before
+    embedding (e.g. "Represent this question for retrieving relevant
+    Bhagavad Gita commentary: "). BGE-family models can perform better
+    on asymmetric retrieval (short query vs long passage) with an
+    instruction prefix on the query side only — corpus passages were
+    NOT re-embedded with any prefix, so this only changes the query
+    vector, matching the asymmetric-instruction pattern these models are
+    documented to expect. None by default (unchanged behavior); used by
+    evaluate_retrieval.py's --prefix flag to A/B test this against the
+    audited golden set before ever considering it for the live pipeline.
 
     NOTE on response shape: confirmed via a real curl test that the
     response for a single-item `inputs` list is NESTED —
@@ -83,8 +94,10 @@ def embed_query(query: str) -> list[float]:
             "HF_API_TOKEN is not set in .env — required to call the embedding API."
         )
 
+    text_to_embed = f"{prefix}{query}" if prefix else query
+
     headers = {"Authorization": f"Bearer {settings.hf_api_token}"}
-    payload = {"inputs": [query]}
+    payload = {"inputs": [text_to_embed]}
 
     logger.info("calling_embedding_model", model=settings.embedding_model)
 

@@ -16,7 +16,11 @@ Metrics:
 
 Usage:
     python evaluate_retrieval.py [path/to/golden_set.json]
-    python evaluate_retrieval.py --rerank   (widen to 20, then rerank down to top_k)
+    python evaluate_retrieval.py --rerank
+    python evaluate_retrieval.py --prefix   (embed queries with a
+        retrieval instruction prefix before embedding -- see
+        retriever.py's embed_query() prefix parameter)
+    python evaluate_retrieval.py --rerank --prefix   (both together)
 """
 
 import json
@@ -38,8 +42,21 @@ DEFAULT_GOLDEN_SET = Path(__file__).parent / "golden_set.json"
 # that production actually runs.
 RERANK_POOL_SIZE = 20
 
+# Instruction prefix for the --prefix experiment (2026-09-13). BGE-family
+# models are documented to sometimes benefit from an instruction prefix
+# on the query side for asymmetric retrieval (short query vs long
+# passage). Testing this specific wording first per the original idea
+# noted in project handoff docs -- not yet proven to help THIS corpus,
+# that's exactly what this flag is for.
+QUERY_PREFIX = "Represent this question for retrieving relevant Bhagavad Gita commentary: "
 
-def evaluate(golden_set_path: Path, top_k: int = 5, use_rerank: bool = False) -> None:
+
+def evaluate(
+    golden_set_path: Path,
+    top_k: int = 5,
+    use_rerank: bool = False,
+    use_prefix: bool = False,
+) -> None:
     with open(golden_set_path, encoding="utf-8") as f:
         golden_set = json.load(f)
 
@@ -47,14 +64,18 @@ def evaluate(golden_set_path: Path, top_k: int = 5, use_rerank: bool = False) ->
     hits = 0
     reciprocal_ranks: list[float] = []
 
-    mode = "WITH reranking" if use_rerank else "embedding-only"
+    mode_parts = []
+    mode_parts.append("WITH reranking" if use_rerank else "embedding-only")
+    mode_parts.append("WITH query prefix" if use_prefix else "no query prefix")
+    mode = ", ".join(mode_parts)
     print(f"Evaluating retrieval on {len(cases)} test cases (top_k={top_k}, {mode})...\n")
 
     for case in cases:
         question = case["question"]
         expected = {(v["chapter"], v["verse_number"]) for v in case["expected_verses"]}
 
-        query_embedding = embed_query(question)
+        embed_prefix = QUERY_PREFIX if use_prefix else None
+        query_embedding = embed_query(question, prefix=embed_prefix)
         with get_session() as session:
             retrieve_k = RERANK_POOL_SIZE if use_rerank else top_k
             results = retrieve(session, query_embedding, top_k=retrieve_k)
@@ -93,6 +114,7 @@ def evaluate(golden_set_path: Path, top_k: int = 5, use_rerank: bool = False) ->
 if __name__ == "__main__":
     args = sys.argv[1:]
     use_rerank = "--rerank" in args
-    positional = [a for a in args if a != "--rerank"]
+    use_prefix = "--prefix" in args
+    positional = [a for a in args if a not in ("--rerank", "--prefix")]
     path = Path(positional[0]) if positional else DEFAULT_GOLDEN_SET
-    evaluate(path, use_rerank=use_rerank)
+    evaluate(path, use_rerank=use_rerank, use_prefix=use_prefix)

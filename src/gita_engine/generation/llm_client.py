@@ -153,12 +153,20 @@ def generate(
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 429 and attempt <= MAX_RATE_LIMIT_RETRIES:
                 retry_after = e.response.headers.get("retry-after")
-                try:
-                    wait_seconds = (
-                        float(retry_after) if retry_after else DEFAULT_RATE_LIMIT_WAIT_SECONDS
-                    )
-                except ValueError:
-                    wait_seconds = DEFAULT_RATE_LIMIT_WAIT_SECONDS
+                if retry_after:
+                    try:
+                        wait_seconds = float(retry_after)
+                    except ValueError:
+                        wait_seconds = DEFAULT_RATE_LIMIT_WAIT_SECONDS * (2 ** (attempt - 1))
+                else:
+                    # No retry-after header this time (observed to happen
+                    # inconsistently -- Groq doesn't always send one).
+                    # Exponential backoff as a real fallback: flat 10s
+                    # retries were found (2026-09-13) to be insufficient --
+                    # 5 retries at 10s each only totals 50s, but the token
+                    # window has been observed needing 100s+ to clear after
+                    # a heavy call. 10/20/40/80/160s gives real headroom.
+                    wait_seconds = DEFAULT_RATE_LIMIT_WAIT_SECONDS * (2 ** (attempt - 1))
                 logger.warning(
                     "generation_rate_limited_retrying",
                     attempt=attempt,
