@@ -1,0 +1,11 @@
+{
+    "description": "Third and final retry pass: the 2 questions still failing with persistent 429s after two prior retry passes. See phase_7d faithfulness eval notes.",
+    "cases": [
+        {
+            "question": "I keep overdoing everything -- work, food, even rest. What does the Gita say about finding balance?"
+        },
+        {
+            "question": "Does what I eat and how I live really affect my mind and spirit, according to the Gita?"
+        }
+    ]
+}

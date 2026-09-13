@@ -138,31 +138,40 @@ def build_graph() -> Any:  # noqa: ANN401
     return graph.compile()
 
 
-def answer_question(query: str) -> ReasoningState:
+def answer_question(query: str, *, log: bool = True) -> ReasoningState:
     """Run the full pipeline for a user question and log the result.
 
     This is the main entry point other code (API routes, eval harness)
     should call — it also writes to query_log, which is what Phase 7
     evaluation and future analytics will read from.
+
+    log=False skips the query_log write. Used by evaluate_faithfulness.py
+    so synthetic eval-run questions don't get mixed into real usage data —
+    every other caller (API routes) keeps the default log=True unchanged.
     """
     app = build_graph()
     result: ReasoningState = app.invoke({"query": query})
 
-    with get_session() as session:
-        session.add(
-            QueryLog(
-                user_question=query,
-                retrieved_ids={
-                    "translation": [
-                        p.verse_id for p in result["retrieved"] if p.passage_type == "translation"
-                    ],
-                    "commentary": [
-                        p.verse_id for p in result["retrieved"] if p.passage_type == "commentary"
-                    ],
-                },
-                final_answer=result.get("answer"),
+    if log:
+        with get_session() as session:
+            session.add(
+                QueryLog(
+                    user_question=query,
+                    retrieved_ids={
+                        "translation": [
+                            p.verse_id
+                            for p in result["retrieved"]
+                            if p.passage_type == "translation"
+                        ],
+                        "commentary": [
+                            p.verse_id
+                            for p in result["retrieved"]
+                            if p.passage_type == "commentary"
+                        ],
+                    },
+                    final_answer=result.get("answer"),
+                )
             )
-        )
 
     logger.info("question_answered", query=query, num_retrieved=len(result["retrieved"]))
     return result

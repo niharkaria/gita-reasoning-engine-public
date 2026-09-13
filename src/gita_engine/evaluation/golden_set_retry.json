@@ -1,0 +1,35 @@
+{
+    "description": "Subset of golden_set.json containing only the 10 questions that failed with 429 rate-limit errors in the first full evaluate_faithfulness.py pass (2026-09-13). Used to complete faithfulness evaluation without re-running the 8 questions that already succeeded.",
+    "cases": [
+        {
+            "question": "Show me Krishna's universal form with many faces and eyes."
+        },
+        {
+            "question": "I freeze up before a hard decision -- my hands shake, my mind goes blank, I can't function. What does Krishna show us through Arjuna in this moment?"
+        },
+        {
+            "question": "As someone others look up to (at work, at home), how much does my own behavior actually shape the people around me?"
+        },
+        {
+            "question": "I keep overdoing everything -- work, food, even rest. What does the Gita say about finding balance?"
+        },
+        {
+            "question": "I only think of God when I'm in trouble. Is that a weak or unworthy kind of faith?"
+        },
+        {
+            "question": "I want to feel God's presence in daily life, not just in a crisis. How do I actually stay connected?"
+        },
+        {
+            "question": "How do I stop being so reactive -- to criticism, to people who upset me -- and find real inner steadiness?"
+        },
+        {
+            "question": "My moods swing so much with what's happening around me. How do I stop being at their mercy?"
+        },
+        {
+            "question": "I know exactly what's holding me back -- old attachments -- but I can't seem to cut free. What does Krishna say to do?"
+        },
+        {
+            "question": "Does what I eat and how I live really affect my mind and spirit, according to the Gita?"
+        }
+    ]
+}

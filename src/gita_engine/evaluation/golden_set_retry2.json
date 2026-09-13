@@ -1,0 +1,17 @@
+{
+    "description": "Second retry pass: the 4 questions still failing after golden_set_retry.json's run (3 rate-limited, 1 hit an unclosed <think> block from unusually long reasoning). See phase_7d faithfulness eval notes.",
+    "cases": [
+        {
+            "question": "I freeze up before a hard decision -- my hands shake, my mind goes blank, I can't function. What does Krishna show us through Arjuna in this moment?"
+        },
+        {
+            "question": "I keep overdoing everything -- work, food, even rest. What does the Gita say about finding balance?"
+        },
+        {
+            "question": "How do I stop being so reactive -- to criticism, to people who upset me -- and find real inner steadiness?"
+        },
+        {
+            "question": "Does what I eat and how I live really affect my mind and spirit, according to the Gita?"
+        }
+    ]
+}
