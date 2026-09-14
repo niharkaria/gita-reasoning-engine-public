@@ -47,6 +47,15 @@ Design notes:
       organization level, not per API key (confirmed via Groq's own
       community docs) -- a fresh API key would NOT help here, since it's
       the same account either way.
+    - LOGGING FIX (2026-09-13, hardening pass): this script previously
+      never called configure_logging(), so structlog ran on unconfigured
+      defaults -- meaning generation_possibly_truncated /
+      generation_unclosed_think_block log events from llm_client.py were
+      NOT reliably visible in this script's output. Now calls
+      configure_logging() explicitly at the start of evaluate(), and also
+      surfaces a possibly-truncated finish_reason directly in this
+      script's own per-question status line and summary counts, rather
+      than relying on a log line alone.
 
 Metrics:
     - Grounded Citation Rate: (citations that matched a retrieved
@@ -57,6 +66,11 @@ Metrics:
     - Hallucinated Citation Count: citations that do NOT match any
       retrieved passage -- the sharpest failure mode, meaning the model
       referenced a verse it was never actually shown.
+    - Possibly-Truncated Count: answers where finish_reason == "length"
+      -- a real, non-empty answer was produced, but Groq cut it off
+      before the model naturally finished. Distinct from the above --
+      the answer may still be citation-grounded so far as it goes, but
+      could be missing content or ending mid-sentence.
 
 Usage:
     python evaluate_faithfulness.py [path/to/golden_set.json]
@@ -68,7 +82,7 @@ import sys
 import time
 from pathlib import Path
 
-from gita_engine.core.logging import get_logger
+from gita_engine.core.logging import configure_logging, get_logger
 from gita_engine.generation.llm_client import GenerationError
 from gita_engine.reasoning.graph import answer_question
 from gita_engine.retrieval.retriever import EmbeddingError
@@ -124,6 +138,8 @@ def parse_citations(text: str) -> set[tuple[int, int]]:
 
 
 def evaluate(golden_set_path: Path) -> None:
+    configure_logging()
+
     with open(golden_set_path, encoding="utf-8") as f:
         golden_set = json.load(f)
 
@@ -134,6 +150,7 @@ def evaluate(golden_set_path: Path) -> None:
     hallucinated_citations = 0
     zero_citation_questions = 0
     failed_questions = 0
+    possibly_truncated_questions = 0
 
     print(f"Evaluating citation grounding on {len(cases)} test cases...\n")
     print(
@@ -158,6 +175,11 @@ def evaluate(golden_set_path: Path) -> None:
         retrieved_keys = {(p.chapter, p.verse_number) for p in result["retrieved"]}
         cited_keys = parse_citations(result["answer"])
 
+        finish_reason = result.get("finish_reason")
+        truncated = finish_reason == "length"
+        if truncated:
+            possibly_truncated_questions += 1
+
         if not cited_keys:
             zero_citation_questions += 1
             status = "ZERO CITATIONS"
@@ -168,6 +190,9 @@ def evaluate(golden_set_path: Path) -> None:
             grounded_citations += len(grounded)
             hallucinated_citations += len(hallucinated)
             status = "OK" if not hallucinated else "HALLUCINATED CITATION"
+
+        if truncated:
+            status += " [POSSIBLY TRUNCATED]"
 
         print(f"[{status}] {question}")
         print(f"  Retrieved: {sorted(retrieved_keys)}")
@@ -182,6 +207,7 @@ def evaluate(golden_set_path: Path) -> None:
         f"Questions answered: {answered}/{len(cases)} ({failed_questions} failed with API errors)"
     )
     print(f"Questions with zero citations: {zero_citation_questions}")
+    print(f"Possibly-truncated answers (finish_reason=length): {possibly_truncated_questions}")
     if total_citations:
         grounded_rate = grounded_citations / total_citations
         print(f"Total citations made: {total_citations}")

@@ -1,0 +1,208 @@
+Evaluating citation grounding on 18 test cases...
+
+(pacing 100s between questions to stay under Groq's free-tier TPM limit -- full run will take a while)
+
+[2m2026-09-13T14:01:52.081613Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T14:01:56.177658Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T14:01:57.777133Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m'What happens to the soul when the body dies?'[0m
+[OK] What happens to the soul when the body dies?
+  Retrieved: [(2, 20), (2, 26), (9, 21), (14, 14)]
+  Cited:     [(2, 20), (2, 26), (9, 21), (14, 14)]
+
+[2m2026-09-13T14:03:37.785894Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T14:03:39.306226Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T14:03:40.186815Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m'Who is the true enjoyer and lord of all sacrifices?'[0m
+[OK] Who is the true enjoyer and lord of all sacrifices?
+  Retrieved: [(5, 29), (10, 38), (12, 1), (12, 16), (16, 14)]
+  Cited:     [(5, 29), (12, 1), (12, 16), (16, 14)]
+
+[2m2026-09-13T14:05:20.197412Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+[2m2026-09-13T14:05:50.334969Z[0m [[31m[1merror    [0m] [1membedding_request_failed      [0m [36merror[0m=[35m'The read operation timed out'[0m
+[FAILED] Show me Krishna's universal form with many faces and eyes.
+  Error: Embedding API call failed: The read operation timed out
+
+[2m2026-09-13T14:07:30.343517Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T14:07:31.853134Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T14:07:33.786908Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m"I freeze up before a hard decision -- my hands shake, my mind goes blank, I can't function. What does Krishna show us through Arjuna in this moment?"[0m
+[OK] I freeze up before a hard decision -- my hands shake, my mind goes blank, I can't function. What does Krishna show us through Arjuna in this moment?
+  Retrieved: [(1, 29), (3, 30), (4, 42), (6, 34), (6, 37)]
+  Cited:     [(1, 29), (3, 30), (4, 42), (6, 34), (6, 37)]
+
+[2m2026-09-13T14:09:13.795910Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T14:09:15.378759Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T14:09:16.263444Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m'As someone others look up to (at work, at home), how much does my own behavior actually shape the people around me?'[0m
+[OK] As someone others look up to (at work, at home), how much does my own behavior actually shape the people around me?
+  Retrieved: [(3, 21), (6, 30), (6, 31), (9, 22), (10, 6)]
+  Cited:     [(3, 21)]
+
+[2m2026-09-13T14:10:56.270004Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T14:10:57.779620Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T14:10:59.582510Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m"I've made serious mistakes in my past and feel unworthy. Is there really a way back?"[0m
+[OK] I've made serious mistakes in my past and feel unworthy. Is there really a way back?
+  Retrieved: [(1, 30), (7, 28), (8, 7), (12, 10), (18, 66)]
+  Cited:     [(7, 28), (8, 7), (12, 10), (18, 66)]
+
+[2m2026-09-13T14:12:39.585301Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T14:12:41.411261Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T14:12:42.998053Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m"How do I stop being ruled by my anger and cravings? Is real happiness even possible while they're this strong?"[0m
+[OK] How do I stop being ruled by my anger and cravings? Is real happiness even possible while they're this strong?
+  Retrieved: [(4, 10), (5, 23), (11, 33), (11, 49), (16, 14)]
+  Cited:     [(4, 10), (5, 23), (11, 33), (16, 14)]
+
+[2m2026-09-13T14:14:23.010774Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T14:14:25.126518Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T14:14:27.598761Z[0m [[33m[1mwarning  [0m] [1mgeneration_retrying_for_truncation[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m1[0m
+[2m2026-09-13T14:14:27.598869Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T14:14:27.716944Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m1838.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T14:45:07.324391Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m'I keep overdoing everything -- work, food, even rest. What does the Gita say about finding balance?'[0m
+[OK] I keep overdoing everything -- work, food, even rest. What does the Gita say about finding balance?
+  Retrieved: [(2, 61), (3, 30), (18, 57), (18, 58), (18, 66)]
+  Cited:     [(2, 61), (3, 30), (18, 57), (18, 66)]
+
+[2m2026-09-13T14:46:47.333177Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T14:46:49.936482Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T14:46:50.014886Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m1011.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T15:03:41.112833Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m2[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m61.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T15:04:43.394684Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m"I only think of God when I'm in trouble. Is that a weak or unworthy kind of faith?"[0m
+[OK] I only think of God when I'm in trouble. Is that a weak or unworthy kind of faith?
+  Retrieved: [(3, 32), (4, 7), (6, 37), (12, 8), (16, 14)]
+  Cited:     [(3, 32), (12, 8), (16, 14)]
+
+[2m2026-09-13T15:06:23.402316Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T15:06:39.339327Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T15:06:39.441792Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m572.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T15:16:11.607528Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m2[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m173.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T15:19:06.701749Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m"I want to feel God's presence in daily life, not just in a crisis. How do I actually stay connected?"[0m
+[OK] I want to feel God's presence in daily life, not just in a crisis. How do I actually stay connected?
+  Retrieved: [(9, 6), (9, 34), (12, 8), (18, 57)]
+  Cited:     [(9, 6), (9, 34), (12, 8), (18, 57)]
+
+[2m2026-09-13T15:20:46.711453Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T15:20:48.940129Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T15:20:49.029368Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m954.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T15:36:44.314780Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m'I feel lost and confused about which way to go in life. Where does real clarity come from?'[0m
+[OK] I feel lost and confused about which way to go in life. Where does real clarity come from?
+  Retrieved: [(2, 7), (2, 41), (3, 2), (7, 25), (10, 42)]
+  Cited:     [(2, 7), (2, 41), (3, 2), (7, 25), (10, 42)]
+
+[2m2026-09-13T15:38:24.321857Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T15:38:26.918183Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T15:38:27.074070Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m730.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T15:50:37.254515Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m2[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m184.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T15:53:43.485542Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m'How do I stop being so reactive -- to criticism, to people who upset me -- and find real inner steadiness?'[0m
+[OK] How do I stop being so reactive -- to criticism, to people who upset me -- and find real inner steadiness?
+  Retrieved: [(6, 26), (11, 49), (12, 8), (12, 9), (12, 15)]
+  Cited:     [(6, 26), (11, 49), (12, 8), (12, 9), (12, 15)]
+
+[2m2026-09-13T15:55:23.492342Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T15:55:26.354953Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T15:55:26.513956Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m1106.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T16:13:53.662164Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m2[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m16.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T16:14:11.659455Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m"I don't feel spiritually advanced or wise myself. Is it enough to simply listen to and trust those who are?"[0m
+[OK] I don't feel spiritually advanced or wise myself. Is it enough to simply listen to and trust those who are?
+  Retrieved: [(3, 33), (6, 37), (7, 24), (7, 25), (18, 71)]
+  Cited:     [(3, 33), (6, 37), (7, 24), (7, 25), (18, 71)]
+
+[2m2026-09-13T16:15:51.666980Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T16:15:54.959842Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T16:15:55.035550Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m814.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T16:29:30.929109Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m"My moods swing so much with what's happening around me. How do I stop being at their mercy?"[0m
+[OK] My moods swing so much with what's happening around me. How do I stop being at their mercy?
+  Retrieved: [(1, 30), (3, 2), (3, 30), (11, 49), (12, 11)]
+  Cited:     [(1, 30), (3, 2), (3, 30), (11, 49), (12, 11)]
+
+[2m2026-09-13T16:31:10.939222Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T16:31:34.512576Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T16:31:34.711064Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m638.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T16:42:12.836960Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m2[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m116.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T16:44:10.123690Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m"I know exactly what's holding me back -- old attachments -- but I can't seem to cut free. What does Krishna say to do?"[0m
+[OK] I know exactly what's holding me back -- old attachments -- but I can't seem to cut free. What does Krishna say to do?
+  Retrieved: [(5, 1), (6, 34), (6, 37), (11, 8), (12, 9)]
+  Cited:     [(6, 34), (6, 37), (11, 8), (12, 9)]
+
+[2m2026-09-13T16:45:50.131909Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T16:45:56.178654Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T16:46:02.315338Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m1500.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T17:11:02.443759Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m2[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m12.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T17:11:14.602804Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m3[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m33.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T17:11:49.691160Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m'What are the real root causes of self-destructive behavior, and how do I actually get free of them?'[0m
+[OK] What are the real root causes of self-destructive behavior, and how do I actually get free of them?
+  Retrieved: [(3, 32), (3, 37), (6, 5), (16, 21), (18, 15)]
+  Cited:     [(3, 32), (3, 37), (6, 5), (16, 21)]
+
+[2m2026-09-13T17:13:29.705897Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T17:13:33.300384Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T17:13:33.412897Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m1678.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T17:41:33.259691Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m'Does what I eat and how I live really affect my mind and spirit, according to the Gita?'[0m
+[OK] Does what I eat and how I live really affect my mind and spirit, according to the Gita?
+  Retrieved: [(2, 23), (3, 30), (3, 33), (16, 14), (18, 58)]
+  Cited:     [(3, 30), (3, 33), (18, 58)]
+
+[2m2026-09-13T17:43:13.268545Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T17:43:18.107253Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T17:43:18.241693Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m1087.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T18:01:26.780084Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m"I'm exhausted trying to do everything 'right.' Is there a final, simplest refuge Krishna offers?"[0m
+[OK] I'm exhausted trying to do everything 'right.' Is there a final, simplest refuge Krishna offers?
+  Retrieved: [(2, 61), (3, 30), (6, 37), (12, 11), (18, 66)]
+  Cited:     [(2, 61), (3, 30), (12, 11), (18, 66)]
+
+=== Summary ===
+Questions answered: 17/18 (1 failed with API errors)
+Questions with zero citations: 0
+Possibly-truncated answers (finish_reason=length): 0
+Total citations made: 68
+Grounded Citation Rate: 100.00% (68/68)
+Hallucinated citations: 0

@@ -46,3 +46,6 @@ logs/
 .DS_Store
 Thumbs.db
 get-docker.sh
+
+
+!docs/evidence/*.log

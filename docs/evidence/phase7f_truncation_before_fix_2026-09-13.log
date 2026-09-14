@@ -1,0 +1,292 @@
+Evaluating citation grounding on 18 test cases...
+
+(pacing 100s between questions to stay under Groq's free-tier TPM limit -- full run will take a while)
+
+[2m2026-09-13T11:56:57.344974Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T11:57:02.119242Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T11:57:02.189983Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m10.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T11:57:12.288959Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m2[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m20.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T11:57:32.377628Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m3[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m40.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T11:58:12.457978Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m4[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m80.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T11:59:41.398573Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m'What happens to the soul when the body dies?'[0m
+[OK] What happens to the soul when the body dies?
+  Retrieved: [(2, 20), (2, 26), (9, 21), (14, 14)]
+  Cited:     [(2, 20), (2, 26), (9, 21), (14, 14)]
+
+[2m2026-09-13T12:01:21.405528Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T12:01:23.138638Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:01:23.268005Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m10.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:01:33.358939Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m2[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m20.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:01:53.436930Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m3[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m40.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:02:33.647398Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m4[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m80.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:03:53.809560Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m5[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m160.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T12:06:39.303238Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m'Who is the true enjoyer and lord of all sacrifices?'[0m
+[OK] Who is the true enjoyer and lord of all sacrifices?
+  Retrieved: [(5, 29), (10, 38), (12, 1), (12, 16), (16, 14)]
+  Cited:     [(5, 29)]
+
+[2m2026-09-13T12:08:19.313738Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T12:08:21.695833Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:08:21.917789Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m10.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:08:32.120754Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m2[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m20.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:08:52.224087Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m3[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m40.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:09:32.305602Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m4[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m80.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:10:52.402256Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m5[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m160.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:13:32.503182Z[0m [[31m[1merror    [0m] [1mgeneration_request_failed     [0m [36merror[0m=[35m"Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429"[0m
+[FAILED] Show me Krishna's universal form with many faces and eyes.
+  Error: Generation API call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+
+[2m2026-09-13T12:15:12.510920Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T12:15:14.725649Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:15:14.851135Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m10.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:15:24.988149Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m2[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m20.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:15:45.096379Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m3[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m40.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T12:16:35.367492Z[0m [[33m[1mwarning  [0m] [1mgeneration_possibly_truncated [0m [36mfinish_reason[0m=[35mlength[0m
+[2m2026-09-13T12:16:35.368439Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m"I freeze up before a hard decision -- my hands shake, my mind goes blank, I can't function. What does Krishna show us through Arjuna in this moment?"[0m
+[ZERO CITATIONS [POSSIBLY TRUNCATED]] I freeze up before a hard decision -- my hands shake, my mind goes blank, I can't function. What does Krishna show us through Arjuna in this moment?
+  Retrieved: [(1, 29), (3, 30), (4, 42), (6, 34), (6, 37)]
+  Cited:     []
+
+[2m2026-09-13T12:18:15.376748Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T12:18:17.148754Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:18:17.306581Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m10.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:18:27.430829Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m2[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m20.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:18:47.604423Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m3[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m40.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:19:27.841789Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m4[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m80.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T12:20:53.984284Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m'As someone others look up to (at work, at home), how much does my own behavior actually shape the people around me?'[0m
+[OK] As someone others look up to (at work, at home), how much does my own behavior actually shape the people around me?
+  Retrieved: [(3, 21), (6, 30), (6, 31), (9, 22), (10, 6)]
+  Cited:     [(3, 21)]
+
+[2m2026-09-13T12:22:33.996657Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T12:22:36.429266Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:22:36.585153Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m10.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:22:46.721767Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m2[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m20.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:23:06.934873Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m3[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m40.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:23:47.044092Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m4[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m80.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:25:07.183247Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m5[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m160.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:27:47.323502Z[0m [[31m[1merror    [0m] [1mgeneration_request_failed     [0m [36merror[0m=[35m"Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429"[0m
+[FAILED] I've made serious mistakes in my past and feel unworthy. Is there really a way back?
+  Error: Generation API call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+
+[2m2026-09-13T12:29:27.329762Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T12:29:31.316949Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T12:29:37.604284Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m"How do I stop being ruled by my anger and cravings? Is real happiness even possible while they're this strong?"[0m
+[OK] How do I stop being ruled by my anger and cravings? Is real happiness even possible while they're this strong?
+  Retrieved: [(4, 10), (5, 23), (11, 33), (11, 49), (16, 14)]
+  Cited:     [(4, 10), (5, 23)]
+
+[2m2026-09-13T12:31:17.614982Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T12:31:19.335615Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T12:31:24.000969Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m'I keep overdoing everything -- work, food, even rest. What does the Gita say about finding balance?'[0m
+[OK] I keep overdoing everything -- work, food, even rest. What does the Gita say about finding balance?
+  Retrieved: [(2, 61), (3, 30), (18, 57), (18, 58), (18, 66)]
+  Cited:     [(2, 61), (3, 30), (18, 57), (18, 58), (18, 66)]
+
+[2m2026-09-13T12:33:04.008061Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T12:33:05.832670Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:33:06.135814Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m10.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:33:16.414103Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m2[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m20.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:33:36.735864Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m3[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m40.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:34:16.949256Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m4[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m80.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:35:37.179733Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m5[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m160.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:38:17.305904Z[0m [[31m[1merror    [0m] [1mgeneration_request_failed     [0m [36merror[0m=[35m"Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429"[0m
+[FAILED] I only think of God when I'm in trouble. Is that a weak or unworthy kind of faith?
+  Error: Generation API call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+
+[2m2026-09-13T12:39:57.315447Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T12:39:59.353574Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:39:59.481600Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m10.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:40:09.604575Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m2[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m20.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:40:29.710820Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m3[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m40.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:41:09.790177Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m4[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m80.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:42:29.863612Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m5[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m160.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:45:09.971130Z[0m [[31m[1merror    [0m] [1mgeneration_request_failed     [0m [36merror[0m=[35m"Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429"[0m
+[FAILED] I want to feel God's presence in daily life, not just in a crisis. How do I actually stay connected?
+  Error: Generation API call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+
+[2m2026-09-13T12:46:49.980718Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T12:46:52.323600Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:46:52.444557Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m10.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:47:02.573461Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m2[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m20.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:47:22.668904Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m3[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m40.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:48:02.774733Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m4[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m80.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:49:22.865229Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m5[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m160.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:52:02.976822Z[0m [[31m[1merror    [0m] [1mgeneration_request_failed     [0m [36merror[0m=[35m"Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429"[0m
+[FAILED] I feel lost and confused about which way to go in life. Where does real clarity come from?
+  Error: Generation API call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+
+[2m2026-09-13T12:53:42.984070Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T12:53:45.260338Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:53:45.364548Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m10.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T12:54:02.249929Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m'How do I stop being so reactive -- to criticism, to people who upset me -- and find real inner steadiness?'[0m
+[OK] How do I stop being so reactive -- to criticism, to people who upset me -- and find real inner steadiness?
+  Retrieved: [(6, 26), (11, 49), (12, 8), (12, 9), (12, 15)]
+  Cited:     [(6, 26), (12, 8), (12, 9), (12, 15)]
+
+[2m2026-09-13T12:55:42.259428Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T12:55:43.837757Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T12:55:52.433732Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m"I don't feel spiritually advanced or wise myself. Is it enough to simply listen to and trust those who are?"[0m
+[OK] I don't feel spiritually advanced or wise myself. Is it enough to simply listen to and trust those who are?
+  Retrieved: [(3, 33), (6, 37), (7, 24), (7, 25), (18, 71)]
+  Cited:     [(3, 33), (7, 24), (7, 25), (18, 71)]
+
+[2m2026-09-13T12:57:32.442983Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T12:57:34.060943Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:57:34.146072Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m10.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:57:44.245638Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m2[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m20.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:58:04.338914Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m3[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m40.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T12:58:44.455975Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m4[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m80.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T13:00:04.542826Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m5[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m160.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T13:02:44.669566Z[0m [[31m[1merror    [0m] [1mgeneration_request_failed     [0m [36merror[0m=[35m"Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429"[0m
+[FAILED] My moods swing so much with what's happening around me. How do I stop being at their mercy?
+  Error: Generation API call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+
+[2m2026-09-13T13:04:24.678673Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T13:04:35.247089Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T13:04:35.318503Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m10.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T13:04:45.413527Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m2[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m20.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T13:05:05.500824Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m3[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m40.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T13:05:45.591235Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m4[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m80.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T13:07:05.696223Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m5[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m160.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T13:09:50.777407Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m"I know exactly what's holding me back -- old attachments -- but I can't seem to cut free. What does Krishna say to do?"[0m
+[OK] I know exactly what's holding me back -- old attachments -- but I can't seem to cut free. What does Krishna say to do?
+  Retrieved: [(5, 1), (6, 34), (6, 37), (11, 8), (12, 9)]
+  Cited:     [(6, 34), (12, 9)]
+
+[2m2026-09-13T13:11:30.784020Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T13:11:32.615989Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T13:11:43.232343Z[0m [[33m[1mwarning  [0m] [1mgeneration_possibly_truncated [0m [36mfinish_reason[0m=[35mlength[0m
+[2m2026-09-13T13:11:43.233290Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m'What are the real root causes of self-destructive behavior, and how do I actually get free of them?'[0m
+[OK [POSSIBLY TRUNCATED]] What are the real root causes of self-destructive behavior, and how do I actually get free of them?
+  Retrieved: [(3, 32), (3, 37), (6, 5), (16, 21), (18, 15)]
+  Cited:     [(3, 32), (3, 37), (6, 5), (16, 21), (18, 15)]
+
+[2m2026-09-13T13:13:23.242193Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T13:13:25.136924Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T13:13:25.281236Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m10.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T13:13:35.395259Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m2[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m20.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T13:13:55.580534Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m3[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m40.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T13:14:35.696544Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m4[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m80.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T13:15:55.802818Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m5[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m160.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T13:18:36.111785Z[0m [[31m[1merror    [0m] [1mgeneration_request_failed     [0m [36merror[0m=[35m"Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429"[0m
+[FAILED] Does what I eat and how I live really affect my mind and spirit, according to the Gita?
+  Error: Generation API call failed: Client error '429 Too Many Requests' for url 'https://api.groq.com/openai/v1/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+
+[2m2026-09-13T13:20:16.118697Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-13T13:20:17.955965Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.6-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T13:20:18.062631Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m10.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-13T13:20:28.224445Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m2[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m20.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-13T13:20:58.427189Z[0m [[31m[1merror    [0m] [1mgeneration_unclosed_think_block[0m [36mcontent_length[0m=[35m17748[0m [36mfinish_reason[0m=[35mlength[0m
+[FAILED] I'm exhausted trying to do everything 'right.' Is there a final, simplest refuge Krishna offers?
+  Error: Generation model ran out of tokens while still reasoning internally (no closing </think> tag found) — finish_reason='length'. Try increasing max_tokens or narrowing the question.
+
+=== Summary ===
+Questions answered: 10/18 (8 failed with API errors)
+Questions with zero citations: 1
+Possibly-truncated answers (finish_reason=length): 2
+Total citations made: 28
+Grounded Citation Rate: 100.00% (28/28)
+Hallucinated citations: 0

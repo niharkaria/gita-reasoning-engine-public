@@ -80,10 +80,85 @@ wait — so rather than a blind sleep or manual re-run, we read that
 header and retry automatically, bounded to a small number of attempts
 so a persistent problem still surfaces as a real error instead of
 hanging forever.
+
+THIRD FOLLOW-UP (2026-09-13, hardening pass after Phase 7e): previously,
+a non-fatal truncation (finish_reason == "length" but a real, non-empty
+answer was still produced) only logged a warning and then silently
+RETURNED THE TRUNCATED ANSWER to the caller -- meaning a real user could
+receive an answer cut off mid-sentence with zero indication anything
+went wrong, and no way for a caller to detect or retry it. Fixed by
+changing generate()'s return type from a plain str to a GenerationResult
+NamedTuple carrying both the cleaned answer AND finish_reason, so
+callers (graph.py, eval scripts) can explicitly check for this and
+decide what to do -- log it, retry, or surface it -- rather than it
+being invisible past this module.
+
+FOURTH FOLLOW-UP (2026-09-13, same day, real root-cause fix): a stress
+test across the full 18-question golden set (using the THIRD FOLLOW-UP's
+new visibility) showed the truncation problem was NOT actually solved by
+raising max_tokens alone -- 2 of 10 answered questions were still flagged
+[POSSIBLY TRUNCATED], and 1 question failed completely with an unclosed
+<think> block, on questions never previously flagged as risky. This
+directly contradicted an earlier "tested clean on 2 known triggers"
+result from Phase 7e -- too thin a sample, same overconfidence mistake
+the reranker experiment made earlier in this project.
+
+Root-caused via direct testing against Groq's raw API (bypassing this
+module) on two fronts:
+
+1. reasoning_effort: Groq's own docs page only lists reasoning_effort as
+   supported for qwen3-32b, qwen-qwq-32b, and deepseek-r1-distill-
+   llama-70b -- NOT qwen3.6-27b. A third-party model registry (pi.dev)
+   claimed it WAS supported for this model regardless, with two values:
+   "none" and "default". Confirmed via real API calls: reasoning_effort
+   ="none" IS honored for this model -- content came back with ZERO
+   <think> tags at all, i.e. the entire max_tokens budget goes toward
+   the real, visible answer instead of being at risk of being consumed
+   by internal reasoning first. This directly eliminates the unclosed-
+   <think> failure mode, since there's no <think> block to leave
+   unclosed.
+
+2. A real, undocumented-on-the-friendly-dashboard OTPM (output tokens
+   per minute) sub-limit was discovered: Limit 1000, confirmed via
+   repeated real 429 responses on this exact org/model/service-tier.
+   This is a PRE-FLIGHT check against the requested max_tokens itself,
+   not just actual usage -- confirmed by a real request with max_tokens
+   =1500 rejected instantly even with a completely full 8000/8000 TPM
+   window (remaining-tokens header showed 8000, reset in 1ms). This
+   means max_tokens must stay under ~1000 for EVERY call, unconditionally
+   -- not situational headroom-tuning. This directly conflicts with this
+   file's prior history of raising max_tokens for more truncation
+   headroom (4096 -> 5120) -- that direction is now a dead end.
+
+Given both findings, max_tokens default was LOWERED (not raised again)
+to 950 -- just under the confirmed OTPM=1000 ceiling -- paired with
+reasoning_effort="none" so the full 950-token budget goes to the real
+answer, not reasoning overhead.
+
+Real batch testing (4 real questions: the previously-failing unclosed-
+think question, the zero-citations question, one more previously-
+flagged question, and one ordinary control) with reasoning_effort=
+"none" + max_tokens=950 showed 3/4 completed cleanly (finish_reason=
+"stop", real citations, no <think> tags). The 4th (a question requiring
+three separate causal threads to answer fully) still hit finish_reason=
+"length" at exactly 950 tokens -- proving reasoning_effort="none" alone
+is NOT fully sufficient; some real (not reasoning-related) answers are
+just long enough to need more room than a hard OTPM-safe ceiling allows.
+
+To handle that remaining case, added a genuine retry-on-truncation
+fallback: if finish_reason=="length" even with reasoning already
+disabled, retry ONCE with a stricter brevity instruction appended to the
+system prompt for that retry only, asking the model to answer more
+concisely and prioritize its strongest citation. This is a real
+functional retry (not just a backoff/retry on errors like the 429
+logic above) -- it changes what's asked of the model on the second
+attempt, since simply repeating the same prompt would very likely
+produce the same length again.
 """
 
 import re
 import time
+from typing import NamedTuple
 
 import httpx
 
@@ -101,29 +176,57 @@ MAX_RATE_LIMIT_RETRIES = 5
 # Fallback wait if Groq doesn't send a retry-after header for some reason.
 DEFAULT_RATE_LIMIT_WAIT_SECONDS = 10.0
 
+# Confirmed via real testing 2026-09-13: Groq enforces a pre-flight OTPM
+# (output tokens per minute) ceiling of 1000 for this model/org/service-tier,
+# checked against the REQUESTED max_tokens itself, not just actual usage.
+# Must stay safely under this on every call, unconditionally.
+DEFAULT_MAX_TOKENS = 950
+
+# One retry, with a stricter brevity instruction, if the model still runs
+# out of room even with reasoning disabled. Not unbounded -- a persistent
+# problem should still surface as a real truncated/error result rather
+# than silently retrying forever.
+MAX_TRUNCATION_RETRIES = 1
+
+BREVITY_RETRY_SUFFIX = (
+    "\n\nIMPORTANT: Your previous attempt at this exact answer ran out of "
+    "space and was cut off before finishing. This time, answer "
+    "significantly more concisely -- aim for roughly half the length, "
+    "lead with your single strongest supporting citation, and make sure "
+    "you reach a complete conclusion within the available space, even if "
+    "that means covering fewer sub-points."
+)
+
 
 class GenerationError(Exception):
     """Raised when the LLM API call fails or returns an unusable response."""
 
 
-def generate(
+class GenerationResult(NamedTuple):
+    """Return type for generate() -- carries the cleaned answer plus the
+    raw finish_reason, so callers can detect a non-fatal truncation
+    (finish_reason == "length" but answer non-empty) instead of it being
+    silently swallowed after only a log line."""
+
+    answer: str
+    finish_reason: str | None
+
+
+def _call_groq_once(
     system_prompt: str,
     user_prompt: str,
     *,
-    max_tokens: int = 5120,
-    temperature: float = 0.2,
-) -> str:
-    """Call the configured generation model (via Groq) and return its text
-    response, with any internal <think> reasoning block stripped out.
+    max_tokens: int,
+    temperature: float,
+    reasoning_effort: str,
+) -> tuple[str, str | None]:
+    """Make one real call to Groq (with its own internal retry-on-429
+    loop), and return the raw (unprocessed) content string plus
+    finish_reason. Raises GenerationError on any unrecoverable failure.
 
-    Low temperature (0.2) by default — this is a grounded-answer task
-    where we want the model to stick closely to retrieved source text,
-    not be creative.
-
-    Retries automatically on HTTP 429 (rate limited), up to
-    MAX_RATE_LIMIT_RETRIES times, using Groq's own retry-after header to
-    know how long to wait. All other HTTP errors raise immediately, same
-    as before.
+    This is intentionally separate from generate() so the truncation-retry
+    logic in generate() can call it twice (original attempt, then a
+    brevity-instructed retry) without duplicating the 429-retry machinery.
     """
     settings = get_settings()
     if not settings.groq_api_key:
@@ -140,6 +243,7 @@ def generate(
         ],
         "max_tokens": max_tokens,
         "temperature": temperature,
+        "reasoning_effort": reasoning_effort,
     }
 
     logger.info("calling_generation_model", model=settings.generation_model)
@@ -193,11 +297,24 @@ def generate(
         logger.error("generation_response_unparseable", response=data)
         raise GenerationError(f"Unexpected response shape from generation API: {data}") from e
 
+    return raw_content, finish_reason
+
+
+def _process_raw_content(raw_content: str, finish_reason: str | None) -> str:
+    """Shared processing for a single raw Groq response: detect an
+    unclosed <think> block, strip any closed one, and detect an
+    empty-after-stripping answer. Raises GenerationError for the fatal
+    cases. Returns the cleaned answer string on success.
+    """
     # Detect an UNCLOSED <think> tag first — this means the model burned
     # its entire max_tokens budget still inside internal reasoning and
     # never got to a real answer. Must check this BEFORE stripping,
     # because the strip regex would simply find no match and silently
     # pass the raw reasoning straight through as if it were the answer.
+    # With reasoning_effort="none" this should no longer occur in
+    # practice (confirmed via real testing 2026-09-13 -- zero <think>
+    # tags across every test call), but the check is kept as a real
+    # safety net rather than assumed away.
     if _UNCLOSED_THINK_RE.search(raw_content):
         logger.error(
             "generation_unclosed_think_block",
@@ -223,9 +340,88 @@ def generate(
             f"finish_reason={finish_reason!r}. Try increasing max_tokens."
         )
 
+    return answer
+
+
+def generate(
+    system_prompt: str,
+    user_prompt: str,
+    *,
+    max_tokens: int = DEFAULT_MAX_TOKENS,
+    temperature: float = 0.2,
+    reasoning_effort: str = "none",
+) -> GenerationResult:
+    """Call the configured generation model (via Groq) and return its text
+    response (with any internal <think> reasoning block stripped out) plus
+    the raw finish_reason, wrapped in a GenerationResult.
+
+    Low temperature (0.2) by default — this is a grounded-answer task
+    where we want the model to stick closely to retrieved source text,
+    not be creative.
+
+    reasoning_effort defaults to "none" -- confirmed via real testing
+    2026-09-13 to be honored by qwen/qwen3.6-27b on Groq despite not
+    being listed on Groq's own docs page for this model, and to
+    eliminate the internal-reasoning-eats-the-budget failure mode
+    entirely (zero <think> tags observed across every real test call).
+
+    max_tokens defaults to DEFAULT_MAX_TOKENS (950) -- kept safely under
+    Groq's confirmed real OTPM (output tokens per minute) pre-flight
+    ceiling of 1000 for this model/org/service-tier. This is a hard
+    ceiling, not situational headroom -- do not raise this without first
+    re-confirming the OTPM limit hasn't changed.
+
+    Retries automatically on HTTP 429 (rate limited), up to
+    MAX_RATE_LIMIT_RETRIES times, using Groq's own retry-after header to
+    know how long to wait. All other HTTP errors raise immediately.
+
+    Separately, if the model still produces a real (non-empty) answer
+    that gets cut off (finish_reason == "length") even with reasoning
+    disabled, this function retries ONCE with a stricter brevity
+    instruction appended to the system prompt for that retry only --
+    confirmed via real testing 2026-09-13 that reasoning_effort="none"
+    alone does not guarantee every real answer fits under the OTPM-safe
+    max_tokens ceiling for questions needing to cover several distinct
+    points.
+    """
+    raw_content, finish_reason = _call_groq_once(
+        system_prompt,
+        user_prompt,
+        max_tokens=max_tokens,
+        temperature=temperature,
+        reasoning_effort=reasoning_effort,
+    )
+    answer = _process_raw_content(raw_content, finish_reason)
+
+    retries_used = 0
+    while finish_reason == "length" and retries_used < MAX_TRUNCATION_RETRIES:
+        retries_used += 1
+        logger.warning(
+            "generation_retrying_for_truncation",
+            attempt=retries_used,
+            max_retries=MAX_TRUNCATION_RETRIES,
+        )
+        retry_system_prompt = system_prompt + BREVITY_RETRY_SUFFIX
+        raw_content, finish_reason = _call_groq_once(
+            retry_system_prompt,
+            user_prompt,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            reasoning_effort=reasoning_effort,
+        )
+        answer = _process_raw_content(raw_content, finish_reason)
+
     if finish_reason == "length":
         # It produced a real answer, but Groq still cut it off before the
-        # model was naturally done. Not fatal, but worth knowing about.
-        logger.warning("generation_possibly_truncated", finish_reason=finish_reason)
+        # model was naturally done -- even after the brevity retry above.
+        # Not fatal on its own -- as of the 2026-09-13 hardening pass,
+        # this is no longer swallowed after just a log line. finish_reason
+        # is returned to the caller via GenerationResult so it can be
+        # detected and acted on explicitly.
+        logger.warning(
+            "generation_possibly_truncated",
+            finish_reason=finish_reason,
+            retries_used=retries_used,
+        )
 
-    return answer
+    return GenerationResult(answer=answer, finish_reason=finish_reason)

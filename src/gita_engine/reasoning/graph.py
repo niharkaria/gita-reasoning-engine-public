@@ -78,6 +78,7 @@ class ReasoningState(TypedDict):
     query_embedding: list[float]
     retrieved: list[RetrievedPassage]
     answer: str
+    finish_reason: str | None
 
 
 def _embed_node(state: ReasoningState) -> ReasoningState:
@@ -113,8 +114,8 @@ def _generate_node(state: ReasoningState) -> ReasoningState:
         f"Question: {state['query']}\n\n"
         "Answer the question using only the passages above, with chapter.verse citations."
     )
-    answer = generate(SYSTEM_PROMPT, user_prompt)
-    return {**state, "answer": answer}
+    result = generate(SYSTEM_PROMPT, user_prompt)
+    return {**state, "answer": result.answer, "finish_reason": result.finish_reason}
 
 
 def build_graph() -> Any:  # noqa: ANN401
