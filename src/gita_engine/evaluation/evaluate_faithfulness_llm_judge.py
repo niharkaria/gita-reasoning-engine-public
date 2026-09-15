@@ -111,7 +111,7 @@ def _strip_json_fences(text: str) -> str:
     return text.strip()
 
 
-def judge_answer(question: str, answer: str, passages_block: str) -> list[dict] | None:
+def judge_answer(question: str, answer: str, passages_block: str) -> list[dict[str, str]] | None:
     """Run the judge call for one question's answer. Returns a list of
     claim-verdict dicts, or None if the judge call failed or returned
     unparseable JSON (reported by the caller, not raised -- one bad
