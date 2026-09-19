@@ -61,7 +61,7 @@ class Settings(BaseSettings):
     # tiny spending credit like Hugging Face's Inference API). Verify the
     # exact model ID in your Groq console before relying on this default —
     # model slugs on hosted providers change.
-    generation_model: str = "qwen/qwen3-32b"
+    generation_model: str = "qwen/qwen3.8-27b"
     groq_api_key: str = Field(default="", repr=False)
     hf_api_token: str = Field(default="", repr=False)
 

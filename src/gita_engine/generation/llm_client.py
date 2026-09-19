@@ -154,6 +154,26 @@ functional retry (not just a backoff/retry on errors like the 429
 logic above) -- it changes what's asked of the model on the second
 attempt, since simply repeating the same prompt would very likely
 produce the same length again.
+
+FIFTH FOLLOW-UP (2026-09-14, item #4 -- concurrent-user rate-limit
+handling): found that the 429-exhaustion path below used to fall
+through to the generic "raise GenerationError(f'Generation API call
+failed: {e}')" line -- indistinguishable from any other HTTP failure.
+The dedicated `for...else` clause that appeared to handle "rate-limited
+after N retries" as a distinct case was real, confirmed DEAD CODE: an
+exception raised inside a for-loop body propagates immediately and
+never reaches that loop's `else` (which only runs if the loop completes
+without break AND without an exception escaping). So rate-limit
+exhaustion previously carried no retry_after info anywhere.
+
+Fixed by raising a dedicated RateLimitExhaustedError (subclass of
+GenerationError, so existing `except GenerationError` call sites are
+unaffected) directly inside the 429-handling branch once retries are
+exhausted, carrying the real retry_after value just computed (Groq's
+own header when present on that final attempt, else our exponential
+backoff estimate -- never a made-up number). This is what lets
+routes.py return an honest HTTP 429 with a real wait estimate instead
+of a generic 502, per the fail-fast design agreed for item #4.
 """
 
 import re
@@ -202,6 +222,29 @@ class GenerationError(Exception):
     """Raised when the LLM API call fails or returns an unusable response."""
 
 
+class RateLimitExhaustedError(GenerationError):
+    """Raised specifically when Groq's 429 rate limit is still in effect
+    after MAX_RATE_LIMIT_RETRIES retries -- a distinct failure mode from
+    every other GenerationError (bad key, malformed response, unclosed
+    <think>, etc.), because it's the one case where we have a real,
+    honest wait estimate to hand back to a caller instead of a flat
+    failure. Carries retry_after (seconds): Groq's own retry-after header
+    value when it sent one on the final attempt, else our exponential
+    backoff estimate -- never a made-up number.
+
+    Subclasses GenerationError (not a standalone exception) so existing
+    `except GenerationError` call sites keep working unchanged; callers
+    that want to special-case rate-limit exhaustion (e.g. routes.py,
+    for a real HTTP 429 with Retry-After) should catch this subclass
+    FIRST, since except-clause matching is top-to-bottom and a subclass
+    will otherwise be swallowed by a preceding `except GenerationError`.
+    """
+
+    def __init__(self, message: str, retry_after: float) -> None:
+        super().__init__(message)
+        self.retry_after = retry_after
+
+
 class GenerationResult(NamedTuple):
     """Return type for generate() -- carries the cleaned answer plus the
     raw finish_reason, so callers can detect a non-fatal truncation
@@ -222,7 +265,9 @@ def _call_groq_once(
 ) -> tuple[str, str | None]:
     """Make one real call to Groq (with its own internal retry-on-429
     loop), and return the raw (unprocessed) content string plus
-    finish_reason. Raises GenerationError on any unrecoverable failure.
+    finish_reason. Raises GenerationError (or its RateLimitExhaustedError
+    subclass, specifically when 429 retries are exhausted) on any
+    unrecoverable failure.
 
     This is intentionally separate from generate() so the truncation-retry
     logic in generate() can call it twice (original attempt, then a
@@ -255,11 +300,11 @@ def _call_groq_once(
             response.raise_for_status()
             break
         except httpx.HTTPStatusError as e:
-            if e.response.status_code == 429 and attempt <= MAX_RATE_LIMIT_RETRIES:
-                retry_after = e.response.headers.get("retry-after")
-                if retry_after:
+            if e.response.status_code == 429:
+                retry_after_header = e.response.headers.get("retry-after")
+                if retry_after_header:
                     try:
-                        wait_seconds = float(retry_after)
+                        wait_seconds = float(retry_after_header)
                     except ValueError:
                         wait_seconds = DEFAULT_RATE_LIMIT_WAIT_SECONDS * (2 ** (attempt - 1))
                 else:
@@ -271,24 +316,46 @@ def _call_groq_once(
                     # window has been observed needing 100s+ to clear after
                     # a heavy call. 10/20/40/80/160s gives real headroom.
                     wait_seconds = DEFAULT_RATE_LIMIT_WAIT_SECONDS * (2 ** (attempt - 1))
-                logger.warning(
-                    "generation_rate_limited_retrying",
-                    attempt=attempt,
+
+                if attempt <= MAX_RATE_LIMIT_RETRIES:
+                    logger.warning(
+                        "generation_rate_limited_retrying",
+                        attempt=attempt,
+                        max_retries=MAX_RATE_LIMIT_RETRIES,
+                        wait_seconds=wait_seconds,
+                    )
+                    time.sleep(wait_seconds)
+                    continue
+
+                # Retries exhausted. Found 2026-09-14: this branch used to
+                # fall through to the generic "raise GenerationError(...)"
+                # below, indistinguishable from any other HTTP failure --
+                # a for/else clause further down that looked like it
+                # handled this case was confirmed dead code (an exception
+                # raised inside a for-loop body propagates immediately; it
+                # never reaches that loop's else). Raising the dedicated
+                # subclass HERE, with the real wait_seconds just computed
+                # above, is what actually makes retry_after available to
+                # callers -- routes.py needs this to return an honest
+                # HTTP 429 with a real wait estimate instead of a generic
+                # 502.
+                logger.error(
+                    "generation_rate_limit_exhausted",
                     max_retries=MAX_RATE_LIMIT_RETRIES,
-                    wait_seconds=wait_seconds,
+                    retry_after=wait_seconds,
                 )
-                time.sleep(wait_seconds)
-                continue
+                raise RateLimitExhaustedError(
+                    f"Generation API rate-limited after {MAX_RATE_LIMIT_RETRIES} retries.",
+                    retry_after=wait_seconds,
+                ) from e
+
             logger.error("generation_request_failed", error=str(e))
             raise GenerationError(f"Generation API call failed: {e}") from e
         except httpx.HTTPError as e:
             logger.error("generation_request_failed", error=str(e))
             raise GenerationError(f"Generation API call failed: {e}") from e
-    else:
-        raise GenerationError(
-            f"Generation API call rate-limited after {MAX_RATE_LIMIT_RETRIES} retries."
-        )
 
+    assert response is not None
     data = response.json()
     try:
         raw_content = str(data["choices"][0]["message"]["content"])
@@ -373,7 +440,11 @@ def generate(
 
     Retries automatically on HTTP 429 (rate limited), up to
     MAX_RATE_LIMIT_RETRIES times, using Groq's own retry-after header to
-    know how long to wait. All other HTTP errors raise immediately.
+    know how long to wait. If retries are exhausted, raises
+    RateLimitExhaustedError (a GenerationError subclass) carrying the
+    real retry_after value, rather than a generic GenerationError, so a
+    caller can return honest backpressure instead of a flat failure. All
+    other HTTP errors raise GenerationError immediately.
 
     Separately, if the model still produces a real (non-empty) answer
     that gets cut off (finish_reason == "length") even with reasoning
