@@ -1,54 +1,952 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,700;1,400&display=swap');
 
-:root {
-  /* Manuscript / epigraphic palette — deliberately not the generic
-     cream+terracotta or near-black+neon defaults. Evokes old book
-     binding (oxblood), stone/parchment, and gold-leaf illumination. */
-  --stone: #e8e2d5;
-  --stone-dim: #ddd5c3;
-  --ink: #2b2420;
-  --ink-soft: #5a5044;
-  --oxblood: #6b1e23;
-  --oxblood-dim: #8a3439;
-  --brass: #a47c48;
-  --brass-soft: #c9bfa8;
+@theme {
+  --color-ink: #1e1b18;
+  --color-ink-soft: #6b625b;
+  --color-stone: #f7f3ea;
+  --color-brass: #b8860b;
+
+  --font-display: var(--font-nf-display);
+  --font-body: var(--font-nf-body);
+  --font-gujarati: var(--font-nf-gujarati);
 }
 
-@theme inline {
-  --color-stone: var(--stone);
-  --color-stone-dim: var(--stone-dim);
-  --color-ink: var(--ink);
-  --color-ink-soft: var(--ink-soft);
-  --color-oxblood: var(--oxblood);
-  --color-oxblood-dim: var(--oxblood-dim);
-  --color-brass: var(--brass);
-  --color-brass-soft: var(--brass-soft);
-  --font-display: var(--font-display);
-  --font-body: var(--font-body);
-  --font-gujarati: var(--font-gujarati);
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  overflow-x: hidden;
+  overflow-anchor: none;
 }
 
 body {
-  background: var(--stone);
-  color: var(--ink);
-  font-family: var(--font-body);
+  min-height: 100vh;
+  background-color: #f7f3ea;
+  background-image: 
+    radial-gradient(ellipse at 50% 0%, rgba(212, 175, 55, 0.14) 0%, transparent 60%),
+    url('/parchment-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: #1e1b18;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-::selection {
-  background: var(--brass-soft);
-  color: var(--ink);
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-/* Visible keyboard focus everywhere — accessibility floor, not optional */
-:focus-visible {
-  outline: 2px solid var(--oxblood);
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(197, 155, 39, 0.35);
+  border-radius: 9999px;
+}
+
+.font-cinzel {
+  font-family: 'Cinzel', serif;
+}
+
+.font-playfair {
+  font-family: 'Playfair Display', serif;
+}
+
+/* Base Layout */
+.app-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Top Navbar */
+.navbar-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(250, 246, 238, 0.94);
+  backdrop-filter: blur(10px);
+  border-bottom: 1.5px solid #e5dccb;
+  padding: 12px 24px;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.navbar-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-logo-box {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  padding: 2px;
+  background: #ffffff;
+  border: 1.5px solid #c59b27;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nav-logo-box img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Replaces the old two-line title/subtext block. Everything now sits
+   on one vertically-centered row: title, chip, info dot -- the old
+   subtext line (which was crowding the navbar per review item 4) is
+   now a hover/focus tooltip on .nav-info instead of always-visible text. */
+.nav-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+}
+
+.nav-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #6b1717;
+  letter-spacing: 0.05em;
+}
+
+.nav-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 2px 9px;
+  border-radius: 9999px;
+  background: #f4ece0;
+  color: #8c6a28;
+  border: 1px solid #dfd2be;
+}
+
+.nav-info {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-info-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid #b8a583;
+  color: #6b5f4e;
+  font-size: 10px;
+  font-weight: 700;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  user-select: none;
+}
+
+.nav-info-tooltip {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  white-space: nowrap;
+  background: #1e1b18;
+  color: #f5ecd8;
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 60;
+}
+
+.nav-info-tooltip::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-bottom-color: #1e1b18;
+}
+
+.nav-info:hover .nav-info-tooltip,
+.nav-info:focus-visible .nav-info-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+}
+
+.reset-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+  background: #ffffff;
+  border: 1px solid #dccbb4;
+  color: #6b1717;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.reset-btn:hover {
+  border-color: #6b1717;
+  background: #faede6;
+}
+
+.reset-btn:focus-visible,
+.prompt-btn:focus-visible,
+.dock-submit:focus-visible {
+  outline: 2px solid #b8860b;
   outline-offset: 2px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+/* Hero Centerpiece */
+.hero-content {
+  flex: 1;
+  width: 100%;
+  position: relative;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.hero-inner {
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+  /* Bumped bottom padding slightly for more breathing room above the
+     floating dock (review item 4). */
+  padding: 44px 20px 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.mantra-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 20px;
+  border-radius: 9999px;
+  border: 1.5px solid #d4af37;
+  background: #ffffff;
+  box-shadow: 0 3px 10px rgba(107, 23, 23, 0.06);
+  margin-bottom: 22px;
+}
+
+.mantra-text {
+  font-size: 15px;
+  font-weight: 700;
+  color: #6b1717;
+  letter-spacing: 0.04em;
+}
+
+.center-logo-wrap {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  margin-bottom: 18px;
+}
+
+.center-logo-wrap::before {
+  content: "";
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.35) 0%, transparent 70%);
+}
+
+.center-logo-circle {
+  position: relative;
+  z-index: 1;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  padding: 3px;
+  background: #ffffff;
+  border: 2px solid #c59b27;
+  box-shadow: 0 6px 20px rgba(107, 23, 23, 0.12);
+}
+
+.center-logo-circle img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.hero-h1 {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #6b1717;
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.hero-desc {
+  font-size: 14.5px;
+  /* Deep warm espresso instead of the old #554d45 -- meaningfully
+     higher contrast against the parchment + scrim behind it
+     (review item 1). */
+  color: #3d352c;
+  max-width: 520px;
+  margin-bottom: 18px;
+  line-height: 1.55;
+  position: relative;
+}
+
+.vasudeva-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 26px;
+}
+
+.vasudeva-line {
+  width: 44px;
+  height: 1.5px;
+  background: #c59b27;
+}
+
+.vasudeva-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #8c6a28;
+  letter-spacing: 0.06em;
+}
+
+/* Prompt Cards */
+.prompts-container {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* More separation from the Shloka card below (review item 4). */
+  margin-bottom: 36px;
+}
+
+.prompt-btn {
+  width: 100%;
+  background: #ffffff;
+  border: 1.5px solid #dfd3bd;
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+}
+
+.prompt-btn:hover,
+.prompt-btn:focus-visible {
+  background: #fffdfa;
+  border-color: #b8860b;
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 20px -4px rgba(107, 23, 23, 0.1),
+    0 2px 6px rgba(184, 134, 11, 0.12),
+    0 0 0 3px rgba(184, 134, 11, 0.12);
+}
+
+.prompt-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.prompt-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #faede6;
+  border: 1px solid #ecc9b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.prompt-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e1b18;
+}
+
+.prompt-btn:hover .prompt-text,
+.prompt-btn:focus-visible .prompt-text {
+  color: #6b1717;
+}
+
+/* Chevron badge -- replaces the flat "→" glyph. A real circular
+   affordance that fills solid and slides right on hover, instead of
+   a subtle dash fading in (review item 3). */
+.prompt-arrow-badge {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid #d9c79a;
+  color: #b8860b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.prompt-btn:hover .prompt-arrow-badge,
+.prompt-btn:focus-visible .prompt-arrow-badge {
+  background: #b8860b;
+  border-color: #b8860b;
+  color: #ffffff;
+  transform: translateX(4px);
+  box-shadow: 0 0 0 4px rgba(184, 134, 11, 0.15);
+}
+
+/* Sanskrit Shloka Box -- now visually distinct from the prompt pills:
+   double-ring border (border + offset outline), warmer cream fill,
+   ornamental glyph, divider. Reads as an inspirational quote block,
+   not a clickable row (review item 2). */
+.shloka-box {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  border-radius: 14px;
+  border: 1.5px solid #b8860b;
+  outline: 1px solid rgba(184, 134, 11, 0.3);
+  outline-offset: 5px;
+  background: linear-gradient(180deg, #fffaf0 0%, #fdf3de 100%);
+  padding: 26px 24px 20px;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(107, 23, 23, 0.05);
+}
+
+.shloka-ornament {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fffaf0;
+  border: 1.5px solid #b8860b;
+  color: #b8860b;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shloka-verse {
+  font-size: 17.5px;
+  font-weight: 700;
+  color: #6b1717;
+  letter-spacing: 0.02em;
+}
+
+.shloka-trans {
+  font-size: 12.5px;
+  color: #554d45;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+.shloka-divider {
+  width: 60px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #b8860b, transparent);
+  margin: 12px auto 8px;
+}
+
+.shloka-ref {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #8c6a28;
+}
+
+/* Bottom Input Dock */
+.footer-dock {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  pointer-events: none;
+  padding: 0 16px 20px;
+}
+
+.dock-form {
+  max-width: 680px;
+  margin: 0 auto;
+  width: 100%;
+  pointer-events: auto;
+}
+
+.dock-container {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(14px);
+  border: 2px solid #d4af37;
+  border-radius: 18px;
+  padding: 6px 8px 6px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(107, 23, 23, 0.05);
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.3s ease;
+}
+
+.dock-container:focus-within {
+  border-color: #6b1717;
+  box-shadow: 0 10px 30px rgba(107, 23, 23, 0.15), 0 0 0 3px rgba(197, 155, 39, 0.2);
+}
+
+.dock-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 14.5px;
+  color: #1e1b18;
+  padding: 8px 0;
+}
+
+.dock-input::placeholder {
+  /* Darker than the old #8f8577 -- distinctly legible against white
+     (review item 1). */
+  color: #6b6258;
+}
+
+.dock-submit {
+  background: #6b1717;
+  color: #ffffff;
+  border: 2px solid #6b1717;
+  outline: none;
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+  padding: 10px 22px;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(107, 23, 23, 0.3);
+  transition: all 0.15s ease;
+}
+
+.dock-submit:hover:not(:disabled) {
+  background: #851f1f;
+  border-color: #851f1f;
+  transform: translateY(-1px);
+}
+
+.dock-submit:disabled {
+  /* A real disabled treatment (border + fill) instead of just faded
+     opacity, so it reads as "not ready" rather than "broken" (review
+     item 1). */
+  background: #e8ded0;
+  border-color: #d9cbb2;
+  color: #a89b86;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+/* ============================================================
+   MANDALA BACKDROP
+   ============================================================ */
+@keyframes chakra-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.hero-chakra-backdrop {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(1000px, 140vw);
+  height: min(1000px, 140vw);
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.hero-chakra-backdrop::before {
+  content: "";
+  position: absolute;
+  inset: -260px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(212, 175, 55, 0.16) 0%,
+    rgba(212, 175, 55, 0.07) 40%,
+    transparent 72%
+  );
+  filter: blur(50px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+:root[data-theme="dark"] .hero-chakra-backdrop::before {
+  opacity: 1;
+}
+
+/* Text-legibility scrim, sits above the backdrop (z-index:0 vs
+   backdrop's -1) and below hero-inner (z-index:1). FIX (2nd pass): the
+   first version had only two gradient stops and a light 6px blur,
+   which produced a visible ring/seam where it met the mandala's own
+   vignette fade -- confirmed from a real screenshot. This version uses
+   more gradient steps for a gradual falloff and a much heavier blur
+   (70px) to diffuse the boundary itself instead of leaving a hard edge. */
+.hero-text-scrim {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  width: min(900px, 140vw);
+  height: min(700px, 110vw);
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 50% 50% at 50% 50%,
+    rgba(247, 243, 234, 0.85) 0%,
+    rgba(247, 243, 234, 0.55) 35%,
+    rgba(247, 243, 234, 0.22) 60%,
+    transparent 92%
+  );
+  filter: blur(70px);
+  transition: background 0.3s ease;
+}
+
+:root[data-theme="dark"] .hero-text-scrim {
+  background: radial-gradient(
+    ellipse 50% 50% at 50% 50%,
+    rgba(20, 17, 13, 0.88) 0%,
+    rgba(20, 17, 13, 0.55) 35%,
+    rgba(20, 17, 13, 0.2) 60%,
+    transparent 92%
+  );
+}
+
+.hero-chakra-swirl {
+  object-fit: contain;
+  animation: chakra-spin 90s linear infinite;
+  opacity: 0.18;
+  transition: opacity 0.3s ease;
+}
+
+.hero-chakra-core {
+  object-fit: contain;
+  opacity: 0.28;
+  transition: opacity 0.3s ease;
+}
+
+:root[data-theme="dark"] .hero-chakra-swirl {
+  opacity: 0.15;
+}
+
+:root[data-theme="dark"] .hero-chakra-core {
+  opacity: 0.22;
+}
+
+/* ============================================================
+   DARK THEME
+   ============================================================ */
+:root[data-theme="dark"] body {
+  background-color: #14110d;
+  background-image: radial-gradient(ellipse at 50% 0%, rgba(212, 175, 55, 0.10) 0%, transparent 60%);
+  color: #f0e6d2;
+}
+
+:root[data-theme="dark"] .navbar-header {
+  background: rgba(20, 17, 13, 0.94);
+  border-bottom-color: #3a2f22;
+}
+
+:root[data-theme="dark"] .nav-logo-box {
+  background: #1e1913;
+  border-color: #d4af37;
+}
+
+:root[data-theme="dark"] .nav-title {
+  color: #d4af37;
+}
+
+:root[data-theme="dark"] .nav-tag {
+  background: #241d15;
+  color: #d4af37;
+  border-color: #4a3c26;
+}
+
+:root[data-theme="dark"] .nav-info-icon {
+  border-color: #6a5a3c;
+  color: #d4af37;
+}
+
+:root[data-theme="dark"] .nav-info-tooltip {
+  background: #f0e6d2;
+  color: #1e1913;
+}
+
+:root[data-theme="dark"] .nav-info-tooltip::before {
+  border-bottom-color: #f0e6d2;
+}
+
+:root[data-theme="dark"] .reset-btn {
+  background: #1e1913;
+  border-color: #4a3c26;
+  color: #d4af37;
+}
+
+:root[data-theme="dark"] .reset-btn:hover {
+  border-color: #d4af37;
+  background: #241d15;
+}
+
+:root[data-theme="dark"] .mantra-pill {
+  background: #1e1913;
+  border-color: #d4af37;
+  box-shadow: 0 3px 10px rgba(212, 175, 55, 0.08);
+}
+
+:root[data-theme="dark"] .mantra-text {
+  color: #d4af37;
+}
+
+:root[data-theme="dark"] .center-logo-wrap::before {
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.25) 0%, transparent 70%);
+}
+
+:root[data-theme="dark"] .center-logo-circle {
+  background: #1e1913;
+  border-color: #d4af37;
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.15);
+}
+
+:root[data-theme="dark"] .hero-h1 {
+  color: #d4af37;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85), 0 0 14px rgba(212, 175, 55, 0.25);
+}
+
+:root[data-theme="dark"] .hero-desc {
+  /* Crisp radiant cream instead of the old #cfc4b0 -- clearly
+     legible against the darker backdrop + scrim (review item 1). */
+  color: #f5e6c8;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+:root[data-theme="dark"] .vasudeva-line {
+  background: #d4af37;
+}
+
+:root[data-theme="dark"] .vasudeva-text {
+  color: #d4af37;
+}
+
+:root[data-theme="dark"] .prompt-btn {
+  background: #1e1913;
+  border-color: #3a2f22;
+}
+
+:root[data-theme="dark"] .prompt-btn:hover,
+:root[data-theme="dark"] .prompt-btn:focus-visible {
+  background: #241d15;
+  border-color: #d4af37;
+  box-shadow:
+    0 8px 20px -4px rgba(212, 175, 55, 0.15),
+    0 0 0 3px rgba(212, 175, 55, 0.14);
+}
+
+:root[data-theme="dark"] .prompt-icon {
+  background: #2a2015;
+  border-color: #4a3c26;
+}
+
+:root[data-theme="dark"] .prompt-text {
+  color: #f0e6d2;
+}
+
+:root[data-theme="dark"] .prompt-btn:hover .prompt-text,
+:root[data-theme="dark"] .prompt-btn:focus-visible .prompt-text {
+  color: #d4af37;
+}
+
+:root[data-theme="dark"] .prompt-arrow-badge {
+  border-color: #5c4c2f;
+  color: #e8c25f;
+}
+
+:root[data-theme="dark"] .prompt-btn:hover .prompt-arrow-badge,
+:root[data-theme="dark"] .prompt-btn:focus-visible .prompt-arrow-badge {
+  background: linear-gradient(135deg, #ffe27a 0%, #f2994a 100%);
+  border-color: #f2994a;
+  color: #1e1913;
+  box-shadow: 0 0 0 4px rgba(242, 153, 74, 0.18);
+}
+
+:root[data-theme="dark"] .shloka-box {
+  border-color: #d4af37;
+  outline-color: rgba(212, 175, 55, 0.3);
+  background: linear-gradient(180deg, #241d15 0%, #1e1913 100%);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme="dark"] .shloka-ornament {
+  background: #241d15;
+  border-color: #d4af37;
+  color: #d4af37;
+}
+
+:root[data-theme="dark"] .shloka-verse {
+  color: #d4af37;
+}
+
+:root[data-theme="dark"] .shloka-trans {
+  color: #cfc4b0;
+}
+
+:root[data-theme="dark"] .shloka-divider {
+  background: linear-gradient(90deg, transparent, #d4af37, transparent);
+}
+
+:root[data-theme="dark"] .shloka-ref {
+  color: #d4af37;
+}
+
+:root[data-theme="dark"] .dock-container {
+  background: rgba(30, 25, 19, 0.98);
+  border-color: #d4af37;
+}
+
+:root[data-theme="dark"] .dock-container:focus-within {
+  border-color: #d4af37;
+  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2), 0 0 0 3px rgba(212, 175, 55, 0.15);
+}
+
+:root[data-theme="dark"] .dock-input {
+  color: #f0e6d2;
+}
+
+:root[data-theme="dark"] .dock-input::placeholder {
+  /* Brighter than the old #7a7062 -- distinctly legible against the
+     dark dock (review item 1). */
+  color: #a89c89;
+}
+
+:root[data-theme="dark"] .dock-submit {
+  background: #d4af37;
+  border-color: #d4af37;
+  color: #14110d;
+}
+
+:root[data-theme="dark"] .dock-submit:hover:not(:disabled) {
+  background: #e0bd4a;
+  border-color: #e0bd4a;
+}
+
+:root[data-theme="dark"] .dock-submit:disabled {
+  background: #33291b;
+  border-color: #4a3c26;
+  color: #7a6d54;
+}
+
+/* ============================================================
+   ONE-SCREEN HERO (no page scroll on the landing view)
+   Applies only while .app-wrapper has .is-hero (no conversation yet).
+   In chat mode the class is removed and the page scrolls normally.
+   ============================================================ */
+html:has(.is-hero),
+body:has(.is-hero) {
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.is-hero {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.is-hero .hero-content {
+  min-height: 0;
+  display: flex;
+}
+
+/* Vertically centers the content in the space between navbar and dock.
+   Bottom padding reserves room for the fixed input dock (~82px). */
+.is-hero .hero-inner {
+  margin: auto;
+  padding: clamp(10px, 2.5vh, 36px) 20px clamp(96px, 15vh, 120px);
+}
+
+/* Tier 1: laptop-height windows -- tighten sizes and gaps */
+@media (max-height: 860px) {
+  .is-hero .mantra-pill { margin-bottom: 12px; padding: 4px 18px; }
+  .is-hero .center-logo-wrap,
+  .is-hero .center-logo-circle { width: 64px; height: 64px; }
+  .is-hero .center-logo-wrap { margin-bottom: 12px; }
+  .is-hero .hero-h1 { font-size: 2rem; margin-bottom: 6px; }
+  .is-hero .hero-desc { margin-bottom: 12px; font-size: 14px; }
+  .is-hero .vasudeva-row { margin-bottom: 16px; }
+  .is-hero .prompts-container { gap: 8px; margin-bottom: 24px; }
+  .is-hero .prompt-btn { padding: 10px 16px; }
+  .is-hero .shloka-box { padding: 20px 22px 14px; }
+}
+
+/* Tier 2: very short windows -- drop the least essential text */
+@media (max-height: 700px) {
+  .is-hero .hero-desc,
+  .is-hero .vasudeva-row,
+  .is-hero .shloka-trans { display: none; }
+  .is-hero .center-logo-wrap,
+  .is-hero .center-logo-circle { width: 52px; height: 52px; }
 }
