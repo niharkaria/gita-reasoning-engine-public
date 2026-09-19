@@ -49,3 +49,9 @@ get-docker.sh
 
 
 !docs/evidence/*.log
+
+# Corpus and derived data (never commit)
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
