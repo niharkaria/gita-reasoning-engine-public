@@ -28,7 +28,7 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const prevExchangeCountRef = useRef(exchanges.length);
