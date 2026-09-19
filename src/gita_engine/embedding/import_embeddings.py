@@ -63,5 +63,5 @@ def import_embeddings(input_path: str) -> None:
 
 
 if __name__ == "__main__":
-    path = sys.argv[1] if len(sys.argv) > 1 else "embedding_output.jsonl"
+    path = sys.argv[1] if len(sys.argv) > 1 else "data/processed/embedding_output.jsonl"
     import_embeddings(path)

@@ -13,7 +13,7 @@ CANONICAL_COUNTS = {
     16: 24, 17: 28, 18: 78,
 }
 
-with open("full_book.txt", encoding="utf-8") as f:
+with open("data/raw/full_book.txt", encoding="utf-8") as f:
     text = f.read()
 verses = parse_ocr_text(text)
 

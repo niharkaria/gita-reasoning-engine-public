@@ -49,5 +49,5 @@ def export(output_path: str) -> None:
 
 
 if __name__ == "__main__":
-    path = sys.argv[1] if len(sys.argv) > 1 else "embedding_export.jsonl"
+    path = sys.argv[1] if len(sys.argv) > 1 else "data/processed/embedding_export.jsonl"
     export(path)
