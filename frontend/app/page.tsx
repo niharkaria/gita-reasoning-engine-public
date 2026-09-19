@@ -28,20 +28,32 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
   const [theme, setTheme] = useState<"light" | "dark">("dark");
+
+  // Bottom-of-page sentinel (used to scroll the loading indicator into view)
   const scrollRef = useRef<HTMLDivElement>(null);
+  // Wrapper around the newest answer (used to scroll to the START of it)
+  const lastAnswerRef = useRef<HTMLDivElement>(null);
 
   const prevExchangeCountRef = useRef(exchanges.length);
   const prevIsLoadingRef = useRef(isLoading);
 
   const hasConversation = exchanges.length > 0;
+  // "Started" = the person has asked something. From that moment the
+  // one-screen hero lock is released so the page can scroll normally.
+  const hasStarted = hasConversation || isLoading || error !== null;
 
   useEffect(() => {
     const gotNewExchange = exchanges.length > prevExchangeCountRef.current;
-    const justFinishedLoading = prevIsLoadingRef.current && !isLoading;
+    const startedLoading = !prevIsLoadingRef.current && isLoading;
 
-    if (gotNewExchange || justFinishedLoading) {
-      scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (gotNewExchange) {
+      // New answer: show the top of it, not the bottom.
+      lastAnswerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else if (startedLoading) {
+      // Question sent: make sure the loading indicator is visible.
+      scrollRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
     }
 
     prevExchangeCountRef.current = exchanges.length;
@@ -69,10 +81,12 @@ export default function Home() {
     setIsLoading(true);
     setError(null);
     setInput("");
+    setPendingQuestion(question.trim());
 
     try {
       const result = await askQuestion(question);
       setExchanges((prev) => [...prev, result]);
+      setPendingQuestion(null);
     } catch (err) {
       setError(
         err instanceof ApiError
@@ -90,16 +104,18 @@ export default function Home() {
   }
 
   function resetToHome() {
+    if (isLoading) return;
     setExchanges([]);
     setError(null);
+    setPendingQuestion(null);
+    window.scrollTo({ top: 0 });
   }
 
   return (
     // "is-hero" locks the layout to exactly one viewport (see the
-    // ONE-SCREEN HERO block at the end of globals.css). Once a
-    // conversation starts, the class is removed and the page scrolls
-    // normally so long answers stay readable.
-    <div className={`app-wrapper${hasConversation ? "" : " is-hero"}`}>
+    // ONE-SCREEN HERO block in globals.css). It is removed as soon as a
+    // question is submitted, so the loading state and the answer can scroll.
+    <div className={`app-wrapper${hasStarted ? "" : " is-hero"}`}>
       <header className="navbar-header">
         <div className="navbar-inner">
           <div className="nav-left">
@@ -132,8 +148,8 @@ export default function Home() {
             >
               {theme === "light" ? "🌙 Dark" : "☀️ Light"}
             </button>
-            {hasConversation && (
-              <button onClick={resetToHome} className="reset-btn">
+            {hasStarted && (
+              <button onClick={resetToHome} className="reset-btn" disabled={isLoading}>
                 Reset
               </button>
             )}
@@ -142,13 +158,14 @@ export default function Home() {
       </header>
 
       <main className="hero-content">
-        {!hasConversation && (
+        {!hasStarted && (
           <div className="hero-chakra-backdrop" aria-hidden="true">
             <Image
               src="/chakra-bg-swirl-web.webp"
               alt=""
               fill
               priority
+              sizes="(max-width: 714px) 140vw, 1000px"
               className="hero-chakra-swirl"
             />
             <Image
@@ -156,17 +173,16 @@ export default function Home() {
               alt=""
               fill
               priority
+              sizes="(max-width: 714px) 140vw, 1000px"
               className="hero-chakra-core"
             />
           </div>
         )}
 
-        {!hasConversation && (
-          <div className="hero-text-scrim" aria-hidden="true" />
-        )}
+        {!hasStarted && <div className="hero-text-scrim" aria-hidden="true" />}
 
         <div className="hero-inner">
-          {!hasConversation ? (
+          {!hasStarted ? (
             <>
               <div className="mantra-pill">
                 <span style={{ color: "#c59b27", fontSize: 13 }}>✦</span>
@@ -186,9 +202,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <h1 className="font-cinzel hero-h1">
-                Gita Reasoning Engine
-              </h1>
+              <h1 className="font-cinzel hero-h1">Gita Reasoning Engine</h1>
 
               <p className="hero-desc">
                 Direct retrieval from canonical Pushtimarg commentaries. Grounded strictly in Mahaprabhu Shri Vallabhacharya's Darshana.
@@ -244,59 +258,33 @@ export default function Home() {
               </div>
             </>
           ) : (
-            <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 20 }}>
+            <div className="chat-view">
               {exchanges.map((exchange, i) => (
-                <AnswerMessage key={i} exchange={exchange} />
+                <div
+                  key={i}
+                  className="answer-item"
+                  ref={i === exchanges.length - 1 ? lastAnswerRef : undefined}
+                >
+                  <AnswerMessage exchange={exchange} />
+                </div>
               ))}
-            </div>
-          )}
 
-          {isLoading && (
-            <div
-              style={{
-                marginTop: 24,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "8px 20px",
-                borderRadius: 9999,
-                background: "#ffffff",
-                border: "1.5px solid #d4af37",
-                color: "#6b1717",
-                fontSize: 12.5,
-                fontWeight: 600,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-              }}
-            >
-              <span
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  background: "#c59b27",
-                  display: "inline-block",
-                }}
-              />
-              Consulting the Vallabhacharya Subodhini & Pushtimarg commentaries...
-            </div>
-          )}
+              {pendingQuestion && (
+                <div className="pending-question">{pendingQuestion}</div>
+              )}
 
-          {error && (
-            <div
-              role="alert"
-              style={{
-                marginTop: 20,
-                padding: "12px 18px",
-                borderRadius: 12,
-                border: "1px solid #f87171",
-                background: "#fef2f2",
-                color: "#991b1b",
-                fontSize: 13,
-                fontWeight: 600,
-                textAlign: "center",
-              }}
-            >
-              {error}
+              {isLoading && (
+                <div className="loading-pill" role="status">
+                  <span className="loading-dot" />
+                  Consulting the Vallabhacharya Subodhini &amp; Pushtimarg commentaries...
+                </div>
+              )}
+
+              {error && (
+                <div role="alert" className="error-box">
+                  {error}
+                </div>
+              )}
             </div>
           )}
 
