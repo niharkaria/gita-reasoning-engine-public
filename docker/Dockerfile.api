@@ -20,7 +20,7 @@ COPY README.md ./
 
 RUN uv venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-RUN uv pip install --python /opt/venv/bin/python ".[eval]"
+RUN uv pip install --python /opt/venv/bin/python "."
 
 FROM python:3.12-slim AS runtime
 

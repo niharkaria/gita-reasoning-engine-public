@@ -28,6 +28,11 @@ const EXAMPLE_QUESTIONS = [
 // no cross-device history).
 const HISTORY_STORAGE_KEY = "gita-reasoning-engine:exchanges";
 
+// Browser-only theme preference persistence: survives a page refresh.
+// Not cleared by Reset (Reset only clears the conversation, not display
+// preferences).
+const THEME_STORAGE_KEY = "gita-reasoning-engine:theme";
+
 export default function Home() {
   const [exchanges, setExchanges] = useState<AskResponse[]>([]);
   const [input, setInput] = useState("");
@@ -36,6 +41,7 @@ export default function Home() {
   const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [historyLoaded, setHistoryLoaded] = useState(false);
+  const [themeLoaded, setThemeLoaded] = useState(false);
 
   // Bottom-of-page sentinel (used to scroll the loading indicator into view)
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -107,11 +113,46 @@ export default function Home() {
     }
   }, []);
 
+  // Restore saved theme preference on load. Note: initial state above is
+  // always "dark", so a saved "light" preference causes a brief flash of
+  // dark theme on first paint before this effect runs -- a real limitation
+  // of client-only persistence without a server-side cookie, not a bug.
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
+      if (saved === "light" || saved === "dark") {
+        setTheme(saved);
+      }
+    } catch {
+      // Storage unavailable -- keep the "dark" default.
+    } finally {
+      setThemeLoaded(true);
+    }
+  }, []);
+
   // Applies the chosen theme by setting data-theme on <html>, which the
   // dark-theme override rules in globals.css key off of.
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
+
+  // Persist theme choice whenever it changes, once the initial restore has
+  // happened. The `themeLoaded` gate matters here for the same reason it
+  // matters for history above: without it, this effect fires once on mount
+  // with the default "dark" BEFORE the restore effect's setTheme() above has
+  // taken effect, silently overwriting a saved "light" preference back to
+  // "dark" in storage on every single page load. Confirmed as a real bug
+  // (not hypothetical) via manual testing 2026-09-20 before this gate was
+  // added. Deliberately NOT cleared by resetToHome() -- Reset clears the
+  // conversation, not display preferences.
+  useEffect(() => {
+    if (!themeLoaded) return;
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch {
+      // Storage unavailable -- theme still works, just won't persist.
+    }
+  }, [theme, themeLoaded]);
 
   function toggleTheme() {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
