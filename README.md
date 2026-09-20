@@ -1,22 +1,22 @@
 # Gita Reasoning Engine
 
 A retrieval-grounded Q&A system for the Bhagavad Gita that answers **strictly from one
-defined Pushtimarg source**: Sanskrit verses, their translations, and a Gujarati
-commentary in the Vitthalnathji tradition. It does not bring in outside philosophy, and
-every answer cites the chapter and verse it came from.
+defined Pushtimarg source**: Sanskrit verses, their translations, and a Gujarati commentary
+in the Vitthalnathji tradition. It does not draw on outside philosophy, and every answer
+cites the chapter and verse it came from.
 
 <!-- Add screenshots: docs/images/hero-light.png, docs/images/hero-dark.png -->
 
 ## The problem
 
 General-purpose language models blend traditions when asked about the Gita. A question
-about the soul can come back with Advaita, Dvaita and modern self-help mixed into one
+about the soul can come back with Advaita, Dvaita, and modern self-help mixed into one
 answer, with no way to tell which claim came from where.
 
-This project constrains the model to a single accepted corpus. Retrieval finds the
-relevant passages, the model is instructed to answer only from them, and the passages are
-returned alongside the answer so every claim can be checked. When the corpus has no direct
-answer, the system says so instead of inventing one.
+This project constrains the model to a single accepted corpus. Retrieval finds the relevant
+passages, the model is instructed to answer only from them, and those passages are returned
+alongside the answer so every claim can be checked. When the corpus has no direct answer,
+the system says so instead of inventing one.
 
 ## How it works
 
@@ -29,73 +29,87 @@ flowchart LR
     R -. cited passages .-> A
 ```
 
-The reasoning pipeline is a small LangGraph graph with three nodes:
+A small LangGraph graph with three nodes:
 
-1. **Embed.** The question is embedded with BAAI/bge-m3 through the Hugging Face
-   Inference API.
-2. **Retrieve.** pgvector cosine-distance search runs over both the verse translations and
-   the commentary. The two candidate lists are merged and the overall top 5 are kept.
-3. **Generate.** The passages are formatted into a prompt with chapter and verse labels, and
+1. **Embed.** The question is embedded with BAAI/bge-m3 via the Hugging Face Inference API.
+2. **Retrieve.** pgvector cosine-distance search runs over both verse translations and
+   commentary. The two candidate lists are merged and the overall top 5 are kept.
+3. **Generate.** Passages are formatted into a prompt with chapter/verse labels, and
    `qwen/qwen3.8-27b` (hosted on Groq) answers using only that text.
 
-The system prompt tells the model to use only the provided passages, cite chapter and verse
-for every specific claim, say so plainly when the passages don't address the question, stay
-faithful to the tradition in the passages, and keep core terms like *dharma*, *atman* and
-*karma* in their original form instead of translating them into generic English.
+The system prompt requires the model to: use only the provided passages; cite chapter and
+verse for every specific claim; say so plainly when the passages don't address the question;
+stay faithful to the tradition in the source text; and keep core terms — *dharma*, *atman*,
+*karma* — in their original form rather than translating them into generic English.
 
-Each question, what was retrieved, and what was generated is written to a query log. Every
-stage also logs its own latency, so slow stages are easy to find.
+Every question, what was retrieved, and what was generated is written to a query log, and
+each pipeline stage logs its own latency so slow stages are easy to isolate.
 
-The corpus vectors are generated in bulk on a Kaggle GPU and imported into Postgres. At query
-time only the single question needs embedding.
+Corpus vectors are generated in bulk on a Kaggle GPU and imported into Postgres. At query
+time, only the single incoming question needs embedding.
 
 ## Design decisions
 
-- **One source by design.** The value of the system is faithfulness to a single tradition,
-  so the corpus is deliberately narrow. Questions outside it get a "not found" style answer.
-- **Truncate for the model, never for the user.** Commentary rows vary widely in length: the
-  median is about 71 words, but the longest is over 1,300 words. Long rows are capped at 200
-  words, cut at the last sentence boundary, and only in the prompt sent to the model. The
-  citations returned to the UI are the full passages. Every truncation is logged with the
-  original and kept word counts.
-- **Handling model output limits.** If an answer is cut off by the model's length limit, the
-  request is retried once with a different instruction, since repeating the same prompt
-  would likely produce the same length again.
+- **One source by design.** The system's value is faithfulness to a single tradition, so
+  the corpus is deliberately narrow. Questions outside it get a "not found" style answer.
+- **Truncate for the model, never for the user.** Commentary length varies widely — median
+  ~71 words, longest over 1,300. Long rows are capped at 200 words for the prompt sent to
+  the model, cut at the last sentence boundary; every truncation is logged with the original
+  and kept word counts. The citations shown in the UI are always the full, untruncated text.
+- **Retry once on truncated output.** If the model's own length limit cuts an answer short,
+  the request retries once with a stricter brevity instruction — repeating the identical
+  prompt would likely hit the same limit again.
 - **Honest rate-limit behavior.** Generation runs on Groq's free tier, where one heavy
-  request can use much of the per-minute token budget. The client retries on HTTP 429 with
-  exponential backoff, using Groq's own retry-after value when present. If retries run out,
-  the API returns a real `429` with a `Retry-After` header instead of a generic error.
-  Queueing was rejected as extra infrastructure this project doesn't otherwise need. The API
-  also applies its own per-client rate limit (slowapi, keyed by IP address).
-- **Evidence over assumption on reranking.** A cross-encoder reranking step was built and
-  measured, then deliberately left out of the pipeline (see Evaluation).
-- **Graph database deferred.** Neo4j is intentionally not part of the stack yet. The reasoning
-  is recorded in an Architecture Decision Record in `docs/architecture/`.
+  request can consume much of the per-minute token budget. The client retries on HTTP 429
+  with exponential backoff, honoring Groq's own `Retry-After` value when present; if retries
+  are exhausted, the API returns a real `429` with a `Retry-After` header instead of a
+  generic error. Queueing was deliberately left out as infrastructure this project doesn't
+  otherwise need. A separate per-client rate limit (slowapi, by IP) applies on top.
+- **Evidence over assumption on retrieval tuning.** Three retrieval-improvement ideas —
+  cross-encoder reranking, an instruction prefix on the query embedding, and translating the
+  query into the corpus's language — were each built, measured, and rejected based on
+  results, not intuition. See Evaluation below.
+- **Graph database deferred.** Neo4j is intentionally not part of the stack yet; the
+  reasoning is recorded in an Architecture Decision Record in `docs/architecture/`.
 
 ## Evaluation
 
-The `src/gita_engine/evaluation/` package measures the system at three levels:
+`src/gita_engine/evaluation/` measures the system at three levels:
 
 - **Retrieval quality** (`evaluate_retrieval.py`): Hit Rate @ k and Mean Reciprocal Rank
-  against a hand-curated golden set of 18 questions, with no LLM involved.
+  against a hand-curated 18-question golden set. No LLM involved.
 - **Citation grounding** (`evaluate_faithfulness.py`): a deterministic check that every
   chapter.verse citation in a generated answer corresponds to a passage that was actually
-  retrieved for that question. No second model call, so no run-to-run variance.
+  retrieved for that question. No model call, so no run-to-run variance.
 - **Claim-level faithfulness** (`evaluate_faithfulness_llm_judge.py`): an LLM judge that
-  splits an answer into individual claims and checks each one against the real retrieved
-  text. This catches cases where a real verse is cited but mischaracterized. It is built by
-  hand, because the `ragas` package would not run in the project's environment, and building
-  it directly means the judging prompt and the definition of "faithful" are fully owned.
+  splits an answer into individual claims and checks each against the retrieved text —
+  catches cases where a real verse is cited but mischaracterized. Built by hand because the
+  `ragas` package wouldn't run in this environment, which also means the judging prompt and
+  the definition of "faithful" are fully owned rather than inherited from a library default.
 
-**Baseline.** On the 18-question golden set, plain embedding retrieval reaches Hit Rate@5 of
-61.11% (11 of 18) with an MRR of 0.556.
+**Baseline.** Plain embedding retrieval on the 18-question golden set: **Hit Rate@5 of
+61.11% (11/18)**, **MRR of 0.556**.
 
-**Reranking experiment.** Widening retrieval to the top 20 and reranking down to 5 with
-`BAAI/bge-reranker-v2-m3` lowered Hit Rate@5 to 44.44% (8 of 18) and MRR to 0.301. Seven
-previously correct hits became misses and none of the known misses were fixed, so the
-reranker is not used. It likely fits this corpus poorly because the queries are English while
-the commentary is Gujarati and Sanskrit. The reranker code and the `--rerank` flag stay in
-place as an A/B harness for future experiments with a different model.
+Three follow-up experiments were run against this baseline:
+
+| Experiment | Hit Rate@5 | MRR | Result |
+|---|---|---|---|
+| Baseline (embedding only) | 61.11% (11/18) | 0.556 | — |
+| Cross-encoder reranking (`bge-reranker-v2-m3`, pool of 20 → top 5) | 44.44% (8/18) | 0.301 | **Rejected** — 7 baseline hits became misses, no misses fixed |
+| Query instruction prefix on embedding | 44.44% (8/18) | 0.256 | **Rejected** — worse on both metrics |
+| Query translation (English → Gujarati before embedding) | 61.11% (11/18) | 0.435 | **Rejected** — identical hits/misses to baseline, ranking only got worse |
+
+The translation result is the most informative negative: it directly tests the theory that
+the failures are a cross-lingual mismatch (English question vs. Gujarati/Sanskrit corpus).
+Translating the query into Gujarati before embedding didn't rescue a single one of the 7
+baseline misses — same exact questions failed either way — which rules that theory out
+rather than leaving it as an assumption. The reranker and prefix experiments both point the
+same direction: retrieval degrades when the query representation moves further from the raw
+question, not closer to the corpus's surface form. The actual bottleneck looks like genuine
+semantic distance between abstract, conversational questions and specific doctrinal verses —
+a harder problem than a query-side trick can fix. The reranker code and the `--rerank` /
+`--prefix` / `--translate` flags stay in `evaluate_retrieval.py` as a reproducible harness
+for future experiments (e.g. a different embedding model) rather than being deleted.
 
 A written record of each build phase is in `docs/phases/`.
 
@@ -193,18 +207,25 @@ docker/              Dockerfile and Compose stack for local dev
 **Current limitations**
 
 - Definitional questions can miss. For a query like "What is dharma?", the top retrieved
-  passages may not contain a direct definition, so the system reports that the term isn't
+  passages may not contain a direct definition, so the system reports the term isn't
   defined as a standalone concept.
-- Some verses act as "attractors" in embedding search (for example 1.30 and 16.14), scoring
-  falsely high for unrelated questions. Retrieval accuracy on the golden set is modest
-  (Hit Rate@5 of 61.11%), and improving it is the main open problem.
+- Some verses act as "attractors" in embedding search (e.g. 1.30, 16.14), scoring falsely
+  high for unrelated questions.
+- Retrieval accuracy on the golden set is modest — Hit Rate@5 of 61.11% — and three
+  targeted fixes (reranking, a query prefix, query translation) have each been tried and
+  ruled out. Improving it further is the main open problem, and likely needs a different
+  embedding model or a larger/re-curated golden set rather than a query-side adjustment.
 - Two users asking at nearly the same time on the free tier can trigger a `429`.
-- Long commentary is trimmed in the prompt, which can occasionally drop a relevant conclusion.
+- Long commentary is trimmed in the prompt, which can occasionally drop a relevant
+  conclusion.
 
 **Ideas for future work**
 
-- Try a different reranker model, or query rewriting, to improve retrieval on definitional
-  questions (the current reranker made results worse on this corpus)
+- Evaluate a different embedding model, since three query-side interventions (reranking,
+  prefix, translation) have each failed to move retrieval accuracy
+- Expand or re-curate the golden set to separate "direct verse lookup" questions from
+  harder abstract/conversational ones, since the current failures cluster heavily in the
+  latter category
 - Conversation history in the UI
 - Request queueing if usage grows beyond the free tier
 - Publish evaluation results on a larger question set

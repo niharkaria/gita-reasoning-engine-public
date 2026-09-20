@@ -1,0 +1,66 @@
+Evaluating LLM-judge faithfulness on 3 test case(s)...
+
+[2m2026-09-20T07:30:54.058159Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-20T07:30:54.423314Z[0m [[32m[1minfo     [0m] [1mstage_latency                 [0m [36mseconds[0m=[35m0.365[0m [36mstage[0m=[35membed[0m
+[2m2026-09-20T07:30:57.947226Z[0m [[32m[1minfo     [0m] [1mstage_latency                 [0m [36mseconds[0m=[35m3.522[0m [36mstage[0m=[35mretrieve[0m
+[2m2026-09-20T07:30:57.948768Z[0m [[33m[1mwarning  [0m] [1mcommentary_truncated_for_prompt[0m [36mchapter[0m=[35m2[0m [36mkept_words[0m=[35m196[0m [36moriginal_words[0m=[35m203[0m [36mverse_id[0m=[35m67[0m [36mverse_number[0m=[35m20[0m
+[2m2026-09-20T07:30:57.949061Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.8-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-20T07:30:59.965917Z[0m [[32m[1minfo     [0m] [1mstage_latency                 [0m [36mseconds[0m=[35m2.017[0m [36mstage[0m=[35mgenerate[0m
+[2m2026-09-20T07:30:59.966782Z[0m [[32m[1minfo     [0m] [1mstage_latency                 [0m [36mseconds[0m=[35m5.91[0m [36mstage[0m=[35mtotal[0m
+[2m2026-09-20T07:30:59.966936Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m'What happens to the soul when the body dies?'[0m
+[2m2026-09-20T07:30:59.967187Z[0m [[33m[1mwarning  [0m] [1mcommentary_truncated_for_prompt[0m [36mchapter[0m=[35m2[0m [36mkept_words[0m=[35m196[0m [36moriginal_words[0m=[35m203[0m [36mverse_id[0m=[35m67[0m [36mverse_number[0m=[35m20[0m
+(pausing 60s before judge call...)
+[2m2026-09-20T07:31:59.967577Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.8-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-20T07:32:02.233997Z[0m [[33m[1mwarning  [0m] [1mgeneration_retrying_for_truncation[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m1[0m
+[2m2026-09-20T07:32:02.234264Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.8-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-20T07:32:02.309143Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m47.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[10 claims] What happens to the soul when the body dies?
+
+[2m2026-09-20T07:34:31.399285Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-20T07:34:31.797981Z[0m [[32m[1minfo     [0m] [1mstage_latency                 [0m [36mseconds[0m=[35m0.399[0m [36mstage[0m=[35membed[0m
+[2m2026-09-20T07:34:33.310842Z[0m [[32m[1minfo     [0m] [1mstage_latency                 [0m [36mseconds[0m=[35m1.511[0m [36mstage[0m=[35mretrieve[0m
+[2m2026-09-20T07:34:33.313048Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.8-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-20T07:34:34.504290Z[0m [[32m[1minfo     [0m] [1mstage_latency                 [0m [36mseconds[0m=[35m1.191[0m [36mstage[0m=[35mgenerate[0m
+[2m2026-09-20T07:34:34.505432Z[0m [[32m[1minfo     [0m] [1mstage_latency                 [0m [36mseconds[0m=[35m3.108[0m [36mstage[0m=[35mtotal[0m
+[2m2026-09-20T07:34:34.505646Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m'Who is the true enjoyer and lord of all sacrifices?'[0m
+(pausing 60s before judge call...)
+[2m2026-09-20T07:35:34.506297Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.8-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[8 claims] Who is the true enjoyer and lord of all sacrifices?
+
+[2m2026-09-20T07:37:16.463186Z[0m [[32m[1minfo     [0m] [1mcalling_embedding_model       [0m [36mmodel[0m=[35mBAAI/bge-m3[0m
+HTTP Request: POST https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction "HTTP/1.1 200 OK"
+[2m2026-09-20T07:37:17.080397Z[0m [[32m[1minfo     [0m] [1mstage_latency                 [0m [36mseconds[0m=[35m0.617[0m [36mstage[0m=[35membed[0m
+[2m2026-09-20T07:37:18.236797Z[0m [[32m[1minfo     [0m] [1mstage_latency                 [0m [36mseconds[0m=[35m1.154[0m [36mstage[0m=[35mretrieve[0m
+[2m2026-09-20T07:37:18.238488Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.8-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-20T07:37:19.471610Z[0m [[32m[1minfo     [0m] [1mstage_latency                 [0m [36mseconds[0m=[35m1.233[0m [36mstage[0m=[35mgenerate[0m
+[2m2026-09-20T07:37:19.472605Z[0m [[32m[1minfo     [0m] [1mstage_latency                 [0m [36mseconds[0m=[35m3.011[0m [36mstage[0m=[35mtotal[0m
+[2m2026-09-20T07:37:19.472803Z[0m [[32m[1minfo     [0m] [1mquestion_answered             [0m [36mnum_retrieved[0m=[35m5[0m [36mquery[0m=[35m"Show me Krishna's universal form with many faces and eyes."[0m
+(pausing 60s before judge call...)
+[2m2026-09-20T07:38:19.473561Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.8-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[2m2026-09-20T07:38:21.729447Z[0m [[33m[1mwarning  [0m] [1mgeneration_retrying_for_truncation[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m1[0m
+[2m2026-09-20T07:38:21.729680Z[0m [[32m[1minfo     [0m] [1mcalling_generation_model      [0m [36mmodel[0m=[35mqwen/qwen3.8-27b[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-20T07:38:21.803579Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m1[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m26.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+[2m2026-09-20T07:38:47.895318Z[0m [[33m[1mwarning  [0m] [1mgeneration_rate_limited_retrying[0m [36mattempt[0m=[35m2[0m [36mmax_retries[0m=[35m5[0m [36mwait_seconds[0m=[35m18.0[0m
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+[7 claims] Show me Krishna's universal form with many faces and eyes.
+
+=== Summary ===
+Questions evaluated: 3
+Answer generation failures: 0
+Unparseable judge responses: 0
+Total claims judged: 25
+Claim Support Rate: 100.00% (25/25)
+Partially supported: 0
+Unsupported: 0
