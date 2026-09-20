@@ -48,6 +48,10 @@ each pipeline stage logs its own latency so slow stages are easy to isolate.
 Corpus vectors are generated in bulk on a Kaggle GPU and imported into Postgres. At query
 time, only the single incoming question needs embedding.
 
+The chat interface keeps the whole conversation on one page — new questions and answers
+append below the previous ones rather than navigating to a separate view — and both the
+conversation and the light/dark theme choice persist across a refresh.
+
 ## Design decisions
 
 - **One source by design.** The system's value is faithfulness to a single tradition, so
@@ -65,6 +69,11 @@ time, only the single incoming question needs embedding.
   are exhausted, the API returns a real `429` with a `Retry-After` header instead of a
   generic error. Queueing was deliberately left out as infrastructure this project doesn't
   otherwise need. A separate per-client rate limit (slowapi, by IP) applies on top.
+- **Client-side conversation and theme persistence.** Chat history and the light/dark theme
+  choice are saved to the browser's localStorage rather than a backend session store —
+  enough to survive a refresh or a closed tab on the same device, with no added
+  infrastructure. Deliberately not synced across devices; real multi-device history would
+  need server-side accounts, which this project's scope doesn't call for.
 - **Evidence over assumption on retrieval tuning.** Three retrieval-improvement ideas —
   cross-encoder reranking, an instruction prefix on the query embedding, and translating the
   query into the corpus's language — were each built, measured, and rejected based on
@@ -218,6 +227,8 @@ docker/              Dockerfile and Compose stack for local dev
 - Two users asking at nearly the same time on the free tier can trigger a `429`.
 - Long commentary is trimmed in the prompt, which can occasionally drop a relevant
   conclusion.
+- Conversation history is browser-local only (localStorage) — it doesn't sync across
+  devices or browsers, and clearing site data removes it.
 
 **Ideas for future work**
 
@@ -226,7 +237,7 @@ docker/              Dockerfile and Compose stack for local dev
 - Expand or re-curate the golden set to separate "direct verse lookup" questions from
   harder abstract/conversational ones, since the current failures cluster heavily in the
   latter category
-- Conversation history in the UI
+- Server-side, cross-device conversation history (would need user accounts)
 - Request queueing if usage grows beyond the free tier
 - Publish evaluation results on a larger question set
 
