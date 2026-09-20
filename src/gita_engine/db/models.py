@@ -129,5 +129,4 @@ class QueryLog(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     user_question: Mapped[str] = mapped_column(Text, nullable=False)
     retrieved_ids: Mapped[dict[str, list[int]]] = mapped_column(JSON, nullable=False)
-    final_answer: Mapped[str | None] = mapped_column(Text)
-    langfuse_trace_id: Mapped[str | None] = mapped_column(String(100))
+    final_answer: Mapped[str | None] = mapped_column(Text)  

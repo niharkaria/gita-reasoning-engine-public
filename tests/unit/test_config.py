@@ -15,7 +15,7 @@ from gita_engine.core.config import Settings, get_settings
 def test_settings_loads_with_required_fields(monkeypatch: pytest.MonkeyPatch) -> None:
     """Settings should construct successfully when required env vars are set."""
     monkeypatch.setenv("POSTGRES_PASSWORD", "test-password")
-    settings = Settings()
+    settings = Settings(_env_file=None)
 
     assert settings.app_env == "development"
     assert settings.postgres_db == "gita_engine"
