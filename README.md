@@ -5,7 +5,10 @@ defined Pushtimarg source**: Sanskrit verses, their translations, and a Gujarati
 in the Vitthalnathji tradition. It does not draw on outside philosophy, and every answer
 cites the chapter and verse it came from.
 
-<!-- Add screenshots: docs/images/hero-light.png, docs/images/hero-dark.png -->
+<p align="center">
+  <img src="docs/images/hero-light.png" alt="Gita Reasoning Engine — light theme" width="49%">
+  <img src="docs/images/hero-dark.png" alt="Gita Reasoning Engine — dark theme" width="49%">
+</p>
 
 ## The problem
 
