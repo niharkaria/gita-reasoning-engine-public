@@ -496,3 +496,33 @@ def generate(
         )
 
     return GenerationResult(answer=answer, finish_reason=finish_reason)
+
+def translate_query(question: str, *, target_language: str = "Gujarati") -> str:
+    """Translate an English question into `target_language` before it gets
+    embedded -- an experiment to test whether a same-language match against
+    the corpus (which is entirely Gujarati commentary/translation text)
+    improves retrieval over embedding the raw English query directly.
+
+    Reuses generate() rather than a separate HTTP call, so this inherits
+    the same Groq error handling, 429 retry behavior, and <think>-block
+    stripping already relied on elsewhere -- not a second code path to
+    maintain.
+
+    Low max_tokens (a translated question is short) and temperature 0.0
+    (translation should be as literal/consistent as possible, not
+    creative). Not yet proven to help this corpus -- that's exactly what
+    the --translate flag on evaluate_retrieval.py is for.
+    """
+    system_prompt = (
+        f"Translate the user's question into {target_language}. "
+        "Return ONLY the translation itself -- no explanation, no quotation "
+        "marks, no additional commentary."
+    )
+    result = generate(
+        system_prompt,
+        question,
+        max_tokens=200,
+        temperature=0.0,
+        reasoning_effort="none",
+    )
+    return result.answer.strip()

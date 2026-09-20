@@ -20,7 +20,11 @@ Usage:
     python evaluate_retrieval.py --prefix   (embed queries with a
         retrieval instruction prefix before embedding -- see
         retriever.py's embed_query() prefix parameter)
-    python evaluate_retrieval.py --rerank --prefix   (both together)
+    python evaluate_retrieval.py --translate   (translate the English
+        question to Gujarati via Groq before embedding -- tests whether
+        same-language query/corpus matching helps, since the corpus is
+        entirely Gujarati commentary/translation text)
+    python evaluate_retrieval.py --rerank --prefix   (combine any flags)
 """
 
 import json
@@ -29,6 +33,7 @@ from pathlib import Path
 
 from gita_engine.core.logging import get_logger
 from gita_engine.db.session import get_session
+from gita_engine.generation.llm_client import translate_query
 from gita_engine.retrieval.reranker import rerank
 from gita_engine.retrieval.retriever import embed_query, retrieve
 
@@ -46,8 +51,9 @@ RERANK_POOL_SIZE = 20
 # models are documented to sometimes benefit from an instruction prefix
 # on the query side for asymmetric retrieval (short query vs long
 # passage). Testing this specific wording first per the original idea
-# noted in project handoff docs -- not yet proven to help THIS corpus,
-# that's exactly what this flag is for.
+# noted in project handoff docs -- confirmed 2026-09-20 to HURT this
+# corpus (Hit Rate@5 61.11% -> 44.44%), kept only as a documented,
+# reproducible negative result, not a recommended flag.
 QUERY_PREFIX = "Represent this question for retrieving relevant Bhagavad Gita commentary: "
 
 
@@ -56,6 +62,7 @@ def evaluate(
     top_k: int = 5,
     use_rerank: bool = False,
     use_prefix: bool = False,
+    use_translate: bool = False,
 ) -> None:
     with open(golden_set_path, encoding="utf-8") as f:
         golden_set = json.load(f)
@@ -67,6 +74,7 @@ def evaluate(
     mode_parts = []
     mode_parts.append("WITH reranking" if use_rerank else "embedding-only")
     mode_parts.append("WITH query prefix" if use_prefix else "no query prefix")
+    mode_parts.append("WITH translation" if use_translate else "no translation")
     mode = ", ".join(mode_parts)
     print(f"Evaluating retrieval on {len(cases)} test cases (top_k={top_k}, {mode})...\n")
 
@@ -74,8 +82,12 @@ def evaluate(
         question = case["question"]
         expected = {(v["chapter"], v["verse_number"]) for v in case["expected_verses"]}
 
+        embed_query_text = question
+        if use_translate:
+            embed_query_text = translate_query(question)
+
         embed_prefix = QUERY_PREFIX if use_prefix else None
-        query_embedding = embed_query(question, prefix=embed_prefix)
+        query_embedding = embed_query(embed_query_text, prefix=embed_prefix)
         with get_session() as session:
             retrieve_k = RERANK_POOL_SIZE if use_rerank else top_k
             results = retrieve(session, query_embedding, top_k=retrieve_k)
@@ -99,6 +111,8 @@ def evaluate(
             status = "MISS"
 
         print(f"[{status}] {question}")
+        if use_translate:
+            print(f"  Translated: {embed_query_text}")
         print(f"  Expected: {sorted(expected)}")
         print(f"  Retrieved: {retrieved_keys}")
         print()
@@ -115,6 +129,7 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     use_rerank = "--rerank" in args
     use_prefix = "--prefix" in args
-    positional = [a for a in args if a not in ("--rerank", "--prefix")]
+    use_translate = "--translate" in args
+    positional = [a for a in args if a not in ("--rerank", "--prefix", "--translate")]
     path = Path(positional[0]) if positional else DEFAULT_GOLDEN_SET
-    evaluate(path, use_rerank=use_rerank, use_prefix=use_prefix)
+    evaluate(path, use_rerank=use_rerank, use_prefix=use_prefix, use_translate=use_translate)
