@@ -15,6 +15,8 @@ export function CitationCard({
 
   return (
     <div className={`cite-card${isHighlighted ? " is-highlighted" : ""}`}>
+      <div className="cite-card-ornament" aria-hidden="true">✦</div>
+
       <button
         type="button"
         onClick={() => setExpanded((prev) => !prev)}
@@ -29,6 +31,11 @@ export function CitationCard({
         </span>
         <span className="cite-card-hint">
           {expanded ? "Hide commentary" : "Tap to view commentary"}
+        </span>
+        <span className={`cite-card-chevron${expanded ? " is-open" : ""}`} aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
         </span>
       </button>
 

@@ -609,7 +609,7 @@ body::-webkit-scrollbar {
 }
 
 .hero-chakra-backdrop {
-  position: absolute;
+  position: fixed;
   top: 50%;
   left: 50%;
   width: min(1000px, 140vw);
@@ -696,6 +696,23 @@ body::-webkit-scrollbar {
 
 :root[data-theme="dark"] .hero-chakra-core {
   opacity: 0.22;
+}
+/* Faint watermark version of the mandala, shown once a conversation
+   has started (chat mode) instead of hiding it entirely. */
+.hero-chakra-backdrop.is-subtle .hero-chakra-swirl {
+  opacity: 0.05;
+}
+
+.hero-chakra-backdrop.is-subtle .hero-chakra-core {
+  opacity: 0.07;
+}
+
+:root[data-theme="dark"] .hero-chakra-backdrop.is-subtle .hero-chakra-swirl {
+  opacity: 0.06;
+}
+
+:root[data-theme="dark"] .hero-chakra-backdrop.is-subtle .hero-chakra-core {
+  opacity: 0.08;
 }
 
 /* ============================================================
@@ -1180,20 +1197,65 @@ button.cite-chip:focus-visible {
 .sources-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   margin-top: 14px;
 }
 
+/* --- Premium citation card --- */
 .cite-card {
-  border-left: 3px solid #b8860b;
-  border-radius: 0 10px 10px 0;
-  background: rgba(255, 253, 250, 0.9);
-  padding: 14px 18px;
-  transition: box-shadow 0.4s ease;
+  position: relative;
+  border-radius: 14px;
+  border: 1px solid #dfd0aa;
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(184, 134, 11, 0.08) 0%, transparent 55%),
+    linear-gradient(165deg, #fffdf7 0%, #fbf3e2 55%, #f7ecd6 100%);
+  padding: 16px 20px 16px 22px;
+  box-shadow: 0 2px 8px rgba(107, 23, 23, 0.05);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.cite-card::before {
+  /* left gold accent bar, replaces the old plain border-left */
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 0;
+  width: 4px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #d4af37, #b8860b);
+}
+
+.cite-card:hover,
+.cite-card:focus-within {
+  transform: translateY(-3px);
+  border-color: #b8860b;
+  box-shadow:
+    0 10px 26px -6px rgba(107, 23, 23, 0.18),
+    0 2px 8px rgba(184, 134, 11, 0.15);
 }
 
 .cite-card.is-highlighted {
-  box-shadow: 0 0 0 2px #b8860b, 0 6px 16px rgba(184, 134, 11, 0.25);
+  border-color: #b8860b;
+  box-shadow: 0 0 0 2px #b8860b, 0 10px 24px rgba(184, 134, 11, 0.28);
+}
+
+.cite-card-ornament {
+  position: absolute;
+  top: -10px;
+  right: 16px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fffaf0;
+  border: 1.5px solid #b8860b;
+  color: #b8860b;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(107, 23, 23, 0.1);
 }
 
 .cite-card-head {
@@ -1211,11 +1273,32 @@ button.cite-chip:focus-visible {
 }
 
 .cite-card-hint {
+  flex: 1;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #6b625b;
+}
+
+.cite-card-chevron {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid #d9c79a;
+  color: #b8860b;
+  transition: transform 0.25s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.cite-card-chevron.is-open {
+  transform: rotate(180deg);
+  background: #b8860b;
+  border-color: #b8860b;
+  color: #ffffff;
 }
 
 .cite-card-sanskrit,
@@ -1230,7 +1313,7 @@ button.cite-chip:focus-visible {
 .cite-card-more {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid rgba(184, 134, 11, 0.3);
+  border-top: 1px dashed rgba(184, 134, 11, 0.35);
 }
 
 .cite-card-kind {
@@ -1276,17 +1359,49 @@ button.cite-chip:focus-visible {
 }
 
 :root[data-theme="dark"] .cite-card {
-  border-left-color: #d4af37;
-  background: #241d15;
+  border-color: #4a3c26;
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(212, 175, 55, 0.1) 0%, transparent 55%),
+    linear-gradient(165deg, #241d15 0%, #201a12 55%, #1c160f 100%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme="dark"] .cite-card::before {
+  background: linear-gradient(180deg, #e8c25f, #d4af37);
+}
+
+:root[data-theme="dark"] .cite-card:hover,
+:root[data-theme="dark"] .cite-card:focus-within {
+  border-color: #d4af37;
+  box-shadow:
+    0 10px 26px -6px rgba(0, 0, 0, 0.45),
+    0 2px 10px rgba(212, 175, 55, 0.2);
 }
 
 :root[data-theme="dark"] .cite-card.is-highlighted {
-  box-shadow: 0 0 0 2px #d4af37, 0 6px 16px rgba(212, 175, 55, 0.25);
+  box-shadow: 0 0 0 2px #d4af37, 0 10px 24px rgba(212, 175, 55, 0.3);
+}
+
+:root[data-theme="dark"] .cite-card-ornament {
+  background: #241d15;
+  border-color: #d4af37;
+  color: #d4af37;
 }
 
 :root[data-theme="dark"] .cite-card-hint,
 :root[data-theme="dark"] .cite-card-kind {
   color: #a89c89;
+}
+
+:root[data-theme="dark"] .cite-card-chevron {
+  border-color: #5c4c2f;
+  color: #e8c25f;
+}
+
+:root[data-theme="dark"] .cite-card-chevron.is-open {
+  background: #d4af37;
+  border-color: #d4af37;
+  color: #1e1913;
 }
 
 :root[data-theme="dark"] .cite-card-sanskrit,
@@ -1296,4 +1411,52 @@ button.cite-chip:focus-visible {
 
 :root[data-theme="dark"] .cite-card-more {
   border-top-color: rgba(212, 175, 55, 0.3);
+}
+
+/* ============================================================
+   MOBILE NAVBAR FIX
+   At narrow widths the navbar (logo + title + tag + info + Light +
+   Reset) doesn't fit in one row and Reset overflows off-screen.
+   Shrink spacing/padding and hide the least essential piece (the
+   "Pushtimarg Corpus" tag) instead of wrapping to two rows.
+   ============================================================ */
+@media (max-width: 480px) {
+  .navbar-header {
+    padding: 10px 12px;
+  }
+
+  .nav-left {
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .nav-title-row {
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .nav-title {
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  /* Least essential piece at this width -- drop it rather than wrap. */
+  .nav-tag {
+    display: none;
+  }
+
+  .nav-actions {
+    gap: 6px;
+  }
+
+  .reset-btn {
+    padding: 0 9px;
+    font-size: 11px;
+  }
+
+  .nav-logo-box {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+  }
 }

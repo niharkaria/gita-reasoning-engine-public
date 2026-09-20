@@ -34,7 +34,7 @@ function renderWithCitations(text: string, onCite: CitationClick, keyPrefix: str
 }
 
 function renderItalics(text: string, onCite: CitationClick, keyPrefix: string): ReactNode[] {
-  return text.split(/(\*[^*\s][^*]*\*)/g).flatMap((part, i) => {
+  return text.split(/(\*[^*\s][^*]*\*)/g).flatMap<ReactNode>((part, i) => {
     if (part.length > 2 && part.startsWith("*") && part.endsWith("*")) {
       return [
         <em key={`${keyPrefix}-e${i}`}>
@@ -47,7 +47,7 @@ function renderItalics(text: string, onCite: CitationClick, keyPrefix: string): 
 }
 
 function renderInline(text: string, onCite: CitationClick, keyPrefix: string): ReactNode[] {
-  return text.split(/(\*\*[^*]+\*\*)/g).flatMap((part, i) => {
+  return text.split(/(\*\*[^*]+\*\*)/g).flatMap<ReactNode>((part, i) => {
     if (part.length > 4 && part.startsWith("**") && part.endsWith("**")) {
       return [
         <strong key={`${keyPrefix}-b${i}`}>

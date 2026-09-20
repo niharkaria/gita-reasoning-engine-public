@@ -23,6 +23,11 @@ const EXAMPLE_QUESTIONS = [
   },
 ];
 
+// Browser-only conversation persistence: survives a page refresh, cleared
+// explicitly by the Reset button. Not synced anywhere else (no backend,
+// no cross-device history).
+const HISTORY_STORAGE_KEY = "gita-reasoning-engine:exchanges";
+
 export default function Home() {
   const [exchanges, setExchanges] = useState<AskResponse[]>([]);
   const [input, setInput] = useState("");
@@ -30,6 +35,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
   const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [historyLoaded, setHistoryLoaded] = useState(false);
 
   // Bottom-of-page sentinel (used to scroll the loading indicator into view)
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -43,6 +49,41 @@ export default function Home() {
   // "Started" = the person has asked something. From that moment the
   // one-screen hero lock is released so the page can scroll normally.
   const hasStarted = hasConversation || isLoading || error !== null;
+
+  // Restore a saved conversation on first load (survives refresh).
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(HISTORY_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved) as AskResponse[];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setExchanges(parsed);
+          // Don't animate a scroll on initial restore -- jump straight there.
+          prevExchangeCountRef.current = parsed.length;
+        }
+      }
+    } catch {
+      // Corrupt or unavailable storage -- just start fresh.
+    } finally {
+      setHistoryLoaded(true);
+    }
+  }, []);
+
+  // Persist on every change, once the initial restore has happened (so we
+  // don't immediately overwrite storage with an empty array before the
+  // restore effect above has had a chance to run).
+  useEffect(() => {
+    if (!historyLoaded) return;
+    try {
+      if (exchanges.length > 0) {
+        window.localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(exchanges));
+      } else {
+        window.localStorage.removeItem(HISTORY_STORAGE_KEY);
+      }
+    } catch {
+      // Storage full/unavailable -- conversation still works, just won't persist.
+    }
+  }, [exchanges, historyLoaded]);
 
   useEffect(() => {
     const gotNewExchange = exchanges.length > prevExchangeCountRef.current;
@@ -108,6 +149,11 @@ export default function Home() {
     setExchanges([]);
     setError(null);
     setPendingQuestion(null);
+    try {
+      window.localStorage.removeItem(HISTORY_STORAGE_KEY);
+    } catch {
+      // Ignore -- nothing to clean up if storage isn't available.
+    }
     window.scrollTo({ top: 0 });
   }
 
@@ -158,26 +204,33 @@ export default function Home() {
       </header>
 
       <main className="hero-content">
-        {!hasStarted && (
-          <div className="hero-chakra-backdrop" aria-hidden="true">
-            <Image
-              src="/chakra-bg-swirl-web.webp"
-              alt=""
-              fill
-              priority
-              sizes="(max-width: 714px) 140vw, 1000px"
-              className="hero-chakra-swirl"
-            />
-            <Image
-              src="/chakra-core-static-web.webp"
-              alt=""
-              fill
-              priority
-              sizes="(max-width: 714px) 140vw, 1000px"
-              className="hero-chakra-core"
-            />
-          </div>
-        )}
+        {/* Mandala backdrop: always mounted now, not just on the landing
+            screen. `is-subtle` (added once a conversation has started)
+            fades it down to a faint watermark via the CSS rules in
+            globals.css, and the backdrop itself is `position: fixed` so
+            it stays centered on screen while a long conversation scrolls,
+            rather than only appearing once partway down the page. */}
+        <div
+          className={`hero-chakra-backdrop${hasStarted ? " is-subtle" : ""}`}
+          aria-hidden="true"
+        >
+          <Image
+            src="/chakra-bg-swirl-web.webp"
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 714px) 140vw, 1000px"
+            className="hero-chakra-swirl"
+          />
+          <Image
+            src="/chakra-core-static-web.webp"
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 714px) 140vw, 1000px"
+            className="hero-chakra-core"
+          />
+        </div>
 
         {!hasStarted && <div className="hero-text-scrim" aria-hidden="true" />}
 
