@@ -44,13 +44,14 @@ leaving the original single-question conclusion unchallenged.
 Reranking made retrieval measurably worse across the full golden set,
 not just on the original single question:
 
-- 7 questions that were correct hits at baseline became misses under
-  reranking: staying connected to God daily (8.14/12.8), turning to God
-  only in crisis (7.16), confusion about life direction (10.10-11),
-  reactivity and inner steadiness (12.13-15), mood swings (14.26), old
-  attachments (15.3-4), food/lifestyle affecting the mind (17.8), and
-  the "simplest refuge" verse (18.66) — the last of these was a clean
-  rank-1 hit at baseline and dropped out of the top 5 entirely.
+- 3 questions that were correct hits at baseline became misses under
+  reranking: staying connected to God daily (8.14/12.8), reactivity and
+  inner steadiness (12.13-15), and the "simplest refuge" verse (18.66) -
+  the last of these was a clean rank-1 hit at baseline and dropped out of
+  the top 5 entirely. (An earlier version of this list also named 7.16,
+  10.10-11, 14.26, 15.3-4 and 17.8, but those were already misses at
+  baseline, so they are not regressions: 11 baseline hits - 3 lost = 8,
+  matching the 8/18 result.)
 - None of the 7 genuine misses identified in Phase 7b were fixed by
   reranking.
 - The "attractor verse" pattern noted in Phase 7b (1.30 and 16.14
@@ -61,7 +62,7 @@ not just on the original single question:
   reranked run too, same failure mode as the original 2026-08-15 test).
 - Only one question improved: the soul-after-death question moved from
   rank 2 to rank 1 — but it was already a hit either way, so this
-  doesn't offset the 7 regressions.
+  doesn't offset the 3 regressions.
 
 ## Conclusion
 
