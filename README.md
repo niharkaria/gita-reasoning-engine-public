@@ -5,6 +5,10 @@ defined Pushtimarg source**: Sanskrit verses, their translations, and a Gujarati
 in the Vitthalnathji tradition. It does not draw on outside philosophy, and every answer
 cites the chapter and verse it came from.
 
+**Live demo:** [gita-reasoning-engine.vercel.app](https://gita-reasoning-engine.vercel.app/)
+(the API runs on a free tier that sleeps when idle, so the first question after a quiet
+period can take 50 seconds or more).
+
 <p align="center">
   <img src="docs/images/hero-light.png" alt="Gita Reasoning Engine — light theme" width="49%">
   <img src="docs/images/hero-dark.png" alt="Gita Reasoning Engine — dark theme" width="49%">
@@ -34,7 +38,7 @@ flowchart LR
 
 A small LangGraph graph with three nodes:
 
-1. **Embed.** The question is embedded with BAAI/bge-m3 via the Hugging Face Inference API.
+1. **Embed.** The question is embedded with BAAI/bge-m3 via Cloudflare Workers AI's hosted `@cf/baai/bge-m3`.
 2. **Retrieve.** pgvector cosine-distance search runs over both verse translations and
    commentary. The two candidate lists are merged and the overall top 5 are kept.
 3. **Generate.** Passages are formatted into a prompt with chapter/verse labels, and
@@ -107,21 +111,34 @@ Three follow-up experiments were run against this baseline:
 | Experiment | Hit Rate@5 | MRR | Result |
 |---|---|---|---|
 | Baseline (embedding only) | 61.11% (11/18) | 0.556 | — |
-| Cross-encoder reranking (`bge-reranker-v2-m3`, pool of 20 → top 5) | 44.44% (8/18) | 0.301 | **Rejected** — 7 baseline hits became misses, no misses fixed |
+| Cross-encoder reranking (`bge-reranker-v2-m3`, pool of 20 → top 5) | 44.44% (8/18) | 0.301 | **Rejected** — 3 baseline hits became misses (8.14/12.8, 12.13-15, 18.66); none of the 7 baseline misses were fixed |
 | Query instruction prefix on embedding | 44.44% (8/18) | 0.256 | **Rejected** — worse on both metrics |
 | Query translation (English → Gujarati before embedding) | 61.11% (11/18) | 0.435 | **Rejected** — identical hits/misses to baseline, ranking only got worse |
 
-The translation result is the most informative negative: it directly tests the theory that
-the failures are a cross-lingual mismatch (English question vs. Gujarati/Sanskrit corpus).
-Translating the query into Gujarati before embedding didn't rescue a single one of the 7
-baseline misses — same exact questions failed either way — which rules that theory out
-rather than leaving it as an assumption. The reranker and prefix experiments both point the
-same direction: retrieval degrades when the query representation moves further from the raw
-question, not closer to the corpus's surface form. The actual bottleneck looks like genuine
-semantic distance between abstract, conversational questions and specific doctrinal verses —
-a harder problem than a query-side trick can fix. The reranker code and the `--rerank` /
+**Caveat on sample size.** The golden set has 18 questions, so each question is worth 5.6
+percentage points. The gap between 61.11% (11/18) and 44.44% (8/18) is three questions.
+Treat these numbers as directional, not statistically conclusive.
+
+The translation result is the most informative negative: it tests the theory that the
+failures come from a cross-lingual mismatch (English question vs. Gujarati/Sanskrit corpus).
+Translating the query into Gujarati before embedding did not rescue any of the 7 baseline
+misses, so this experiment does not support that theory. It does not rule it out, since the
+quality of the machine translation or the embedding model itself could still be the cause.
+The reranker and prefix experiments both point the same direction: retrieval got worse when
+the query was changed, not better. One hypothesis is that the bottleneck is semantic distance
+between abstract, conversational questions and specific doctrinal verses, which a query-side
+trick may not fix. That hypothesis is untested. The reranker code and the `--rerank` /
 `--prefix` / `--translate` flags stay in `evaluate_retrieval.py` as a reproducible harness
 for future experiments (e.g. a different embedding model) rather than being deleted.
+
+**Faithfulness.** Citation grounding (`evaluate_faithfulness.py`): 55 of 55 citations in
+generated answers matched passages that were actually retrieved for that question, with no
+hallucinated citations. The claim-level LLM judge (`evaluate_faithfulness_llm_judge.py`) has
+only been run on a 3-question sample, twice: 23 and 25 claims were judged, with no
+unsupported claims in either run. The fully-supported rate was 91.30% (21/23) in the first
+run and 100% (25/25) in the second; the difference comes from answer generation running at
+temperature 0.2, so wording varies between runs. Treat this as a small-sample range, not a
+measured score. Running the judge on the full golden set is future work.
 
 A written record of each build phase is in `docs/phases/`.
 
@@ -133,17 +150,18 @@ A written record of each build phase is in `docs/phases/`.
 | API | FastAPI, Uvicorn, Pydantic |
 | Rate limiting | slowapi |
 | Database | PostgreSQL 17 with pgvector, SQLAlchemy, Alembic, psycopg |
-| Embeddings | BAAI/bge-m3 (Hugging Face Inference API) |
+| Embeddings | BAAI/bge-m3 (Cloudflare Workers AI) |
 | Orchestration | LangGraph |
 | Generation | `qwen/qwen3.8-27b` on the Groq API, called with httpx |
 | Logging | structlog |
 | Ingestion (optional extra) | PyMuPDF, PaddleOCR |
 | Frontend | Next.js, TypeScript, plain CSS (light and dark themes) |
-| Infra | Docker Compose |
+| Infra | Docker Compose (local development) |
+| Hosting | Vercel (frontend), Render (API), Supabase (PostgreSQL + pgvector) |
 
 ## Getting started
 
-Prerequisites: Docker, Node.js, a Groq API key, and a Hugging Face access token.
+Prerequisites: Docker, Node.js, a Groq API key, and a Cloudflare account ID and Workers AI API token.
 
 ```bash
 # 1. Install Python dependencies
@@ -151,7 +169,7 @@ make install
 
 # 2. Configure environment
 cp .env.example .env
-# Set at least: POSTGRES_PASSWORD, GROQ_API_KEY, HF_API_TOKEN
+# Set at least: POSTGRES_PASSWORD, GROQ_API_KEY, CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN
 
 # 3. Start Postgres, API and frontend
 make up
@@ -183,13 +201,42 @@ Run `make help` for the full list.
 | Variable | Purpose |
 |---|---|
 | `GROQ_API_KEY` | Required for answer generation |
-| `HF_API_TOKEN` | Required for query embedding |
+| `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` | Required for query embedding (Cloudflare Workers AI, BGE-M3) |
+| `HF_API_TOKEN` | Only for the optional reranker experiment, not the live pipeline |
 | `GENERATION_MODEL` | Generation model ID (default `qwen/qwen3.8-27b`) |
-| `EMBEDDING_MODEL` | Embedding model (BGE-M3) |
+| `EMBEDDING_MODEL` | Not used for query embedding, which is fixed to `@cf/baai/bge-m3` |
 | `POSTGRES_*` | Database connection settings |
 | `CORS_ALLOWED_ORIGINS` | Origins allowed to call the API |
+| `NEXT_PUBLIC_API_BASE_URL` | Frontend only: URL of the API, set at build time (defaults to `http://localhost:8000`) |
 
 Never commit `.env`.
+
+## Deployment
+
+The live demo runs on free tiers of three services:
+
+| Part | Service | Notes |
+|---|---|---|
+| Frontend | Vercel | Next.js app; Root Directory set to `frontend`. |
+| API | Render | Docker runtime, built from `docker/Dockerfile.api`. |
+| Database | Supabase | PostgreSQL with the pgvector extension. |
+
+Environment variables:
+
+- **Vercel:** `NEXT_PUBLIC_API_BASE_URL`, the public URL of the API. Next.js bakes
+  `NEXT_PUBLIC_*` variables in at build time, so changing it requires a redeploy.
+- **Render:** `GROQ_API_KEY`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`,
+  `GENERATION_MODEL`, `CORS_ALLOWED_ORIGINS` (must include the frontend's URL), the
+  `POSTGRES_*` connection settings pointing at Supabase, and the app settings `APP_ENV`,
+  `LOG_LEVEL`, `API_HOST` and `API_PORT`.
+
+Database schema changes are applied with the Alembic migrations in `alembic/`. The corpus is
+loaded separately and is not in this repository (see Getting started).
+
+**Free-tier behavior.** Render's free instances spin down after a period of inactivity, so
+the first request after a quiet stretch can take 50 seconds or more while the API wakes up.
+Groq's and Cloudflare's free tiers also have usage limits; generation rate limits surface as
+a `429` (see API behavior).
 
 ## API behavior
 
@@ -225,7 +272,7 @@ docker/              Dockerfile and Compose stack for local dev
   high for unrelated questions.
 - Retrieval accuracy on the golden set is modest — Hit Rate@5 of 61.11% — and three
   targeted fixes (reranking, a query prefix, query translation) have each been tried and
-  ruled out. Improving it further is the main open problem, and likely needs a different
+  found not to help. Improving it further is the main open problem, and likely needs a different
   embedding model or a larger/re-curated golden set rather than a query-side adjustment.
 - Two users asking at nearly the same time on the free tier can trigger a `429`.
 - Long commentary is trimmed in the prompt, which can occasionally drop a relevant
