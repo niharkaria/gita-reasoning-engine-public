@@ -106,6 +106,11 @@ conversation and the light/dark theme choice persist across a refresh.
 **Baseline.** Plain embedding retrieval on the 18-question golden set: **Hit Rate@5 of
 61.11% (11/18)**, **MRR of 0.556**.
 
+The baseline was re-run on 23 October 2026 after query embedding moved to Cloudflare Workers
+AI: Hit Rate@5 and MRR came out identical (61.11%, 0.556), and the same 7 questions missed.
+The three experiments below were run earlier, on the previous Hugging Face path, and were not
+repeated.
+
 Three follow-up experiments were run against this baseline:
 
 | Experiment | Hit Rate@5 | MRR | Result |
@@ -131,14 +136,16 @@ trick may not fix. That hypothesis is untested. The reranker code and the `--rer
 `--prefix` / `--translate` flags stay in `evaluate_retrieval.py` as a reproducible harness
 for future experiments (e.g. a different embedding model) rather than being deleted.
 
-**Faithfulness.** Citation grounding (`evaluate_faithfulness.py`): 55 of 55 citations in
-generated answers matched passages that were actually retrieved for that question, with no
-hallucinated citations. The claim-level LLM judge (`evaluate_faithfulness_llm_judge.py`) has
-only been run on a 3-question sample, twice: 23 and 25 claims were judged, with no
-unsupported claims in either run. The fully-supported rate was 91.30% (21/23) in the first
-run and 100% (25/25) in the second; the difference comes from answer generation running at
-temperature 0.2, so wording varies between runs. Treat this as a small-sample range, not a
-measured score. Running the judge on the full golden set is future work.
+**Faithfulness.** Citation grounding (`evaluate_faithfulness.py`): 16 of the 18 golden-set
+questions were answered (the other 2 hit Groq rate limits or a truncated reasoning output,
+which is not a faithfulness failure), and all 55 citations in those answers matched passages
+that were actually retrieved for that question, with no hallucinated citations. The
+claim-level LLM judge (`evaluate_faithfulness_llm_judge.py`) has only been run on a
+3-question sample, twice. Run 1 judged 23 claims: 21 fully supported (91.30%), 2 partially
+supported, 0 unsupported. Run 2 judged 25 claims: all 25 fully supported (100%), 0 partially
+supported, 0 unsupported. The difference comes from answer generation running at temperature
+0.2, so wording varies between runs. Treat this as a small-sample range, not a measured
+score. Running the judge on the full golden set is future work.
 
 A written record of each build phase is in `docs/phases/`.
 
