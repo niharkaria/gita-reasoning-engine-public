@@ -13,13 +13,15 @@ Design notes:
     - pgvector's `<=>` operator computes cosine DISTANCE (0 = identical,
       2 = opposite), not similarity — we convert to a similarity score
       (1 - distance) for a more intuitive 0..1-ish scale in results.
-    - Embedding the query itself happens via Hugging Face's hosted
-      Inference API (see embed_query below), NOT loaded locally. This
-      changed from an earlier local sentence-transformers approach after
-      that caused an OOM crash on Render's free tier (512MB total RAM,
-      nowhere near enough to load BGE-M3's ~2.2GB weights). Calling the
-      same model via HF's API keeps query/corpus embeddings comparable
-      without the API process ever needing to hold model weights.
+    - Embedding the query happens via Cloudflare Workers AI's hosted
+      @cf/baai/bge-m3 (see embed_query below), NOT loaded locally. Local
+      loading caused an OOM crash on Render's free tier (512MB total RAM,
+      nowhere near enough for BGE-M3's ~2.2GB weights). It is the SAME model
+      as the Kaggle-generated corpus embeddings; a real compatibility check
+      showed cosine similarity of 0.991-1.000 between Cloudflare's vectors
+      and the stored ones, so no re-embedding or schema change was needed.
+      (History: this used Hugging Face's router until HF removed the free
+      credit for free accounts, which made every call fail with a 402.)
 """
 
 from dataclasses import dataclass
@@ -30,18 +32,13 @@ from sqlalchemy.orm import Session
 
 from gita_engine.core.config import get_settings
 from gita_engine.core.logging import get_logger
-from gita_engine.db.models import Commentary, Source, Translation, Verse
+from gita_engine.db.models import EMBEDDING_DIM, Commentary, Source, Translation, Verse
 
 logger = get_logger(__name__)
 
 TOP_K_DEFAULT = 5
 
-# NOTE: HF's OLD endpoint (api-inference.huggingface.co) is fully
-# deprecated — doesn't resolve via DNS anymore. Must use the NEW
-# router.huggingface.co domain with this feature-extraction-specific path.
-HF_EMBEDDING_URL = (
-    "https://router.huggingface.co/hf-inference/models/BAAI/bge-m3/pipeline/feature-extraction"
-)
+CF_EMBEDDING_MODEL = "@cf/baai/bge-m3"
 
 
 class EmbeddingError(Exception):
@@ -63,60 +60,59 @@ class RetrievedPassage:
 
 
 def embed_query(query: str, *, prefix: str | None = None) -> list[float]:
-    """Embed a single query string using BGE-M3, via Hugging Face's hosted
-    Inference API (router.huggingface.co) rather than loading the model
-    locally.
+    """Embed a single query string using BGE-M3, via Cloudflare Workers AI's
+    hosted REST API rather than loading the model locally.
 
     Uses the SAME model (BAAI/bge-m3) as the corpus embeddings already
-    stored in Supabase (generated on Kaggle), so query and corpus vectors
-    stay comparable — only *how* the query embedding is computed changed,
-    not the model itself.
+    stored in Supabase, so query and corpus vectors stay comparable.
 
     prefix: optional instruction text prepended to the query before
-    embedding (e.g. "Represent this question for retrieving relevant
-    Bhagavad Gita commentary: "). BGE-family models can perform better
-    on asymmetric retrieval (short query vs long passage) with an
-    instruction prefix on the query side only — corpus passages were
-    NOT re-embedded with any prefix, so this only changes the query
-    vector, matching the asymmetric-instruction pattern these models are
-    documented to expect. None by default (unchanged behavior); used by
+    embedding. None by default (unchanged behavior); used by
     evaluate_retrieval.py's --prefix flag to A/B test this against the
-    audited golden set before ever considering it for the live pipeline.
+    audited golden set.
 
-    NOTE on response shape: confirmed via a real curl test that the
-    response for a single-item `inputs` list is NESTED —
-    `[[float, float, ...]]` — so we need [0] to get the actual vector,
-    not just JSON-parsing the top level directly.
+    NOTE on response shape (confirmed via a real call): the vector is at
+    response["result"]["data"][0] — a list of 1024 floats.
     """
     settings = get_settings()
-    if not settings.hf_api_token:
+    if not settings.cloudflare_account_id or not settings.cloudflare_api_token:
         raise EmbeddingError(
-            "HF_API_TOKEN is not set in .env — required to call the embedding API."
+            "CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN must be set — "
+            "required to call the embedding API."
         )
 
     text_to_embed = f"{prefix}{query}" if prefix else query
 
-    headers = {"Authorization": f"Bearer {settings.hf_api_token}"}
-    payload = {"inputs": [text_to_embed]}
+    url = (
+        "https://api.cloudflare.com/client/v4/accounts/"
+        f"{settings.cloudflare_account_id}/ai/run/{CF_EMBEDDING_MODEL}"
+    )
+    headers = {"Authorization": f"Bearer {settings.cloudflare_api_token}"}
+    payload = {"text": [text_to_embed]}
 
-    logger.info("calling_embedding_model", model=settings.embedding_model)
+    logger.info("calling_embedding_model", model=CF_EMBEDDING_MODEL)
 
     try:
-        response = httpx.post(HF_EMBEDDING_URL, headers=headers, json=payload, timeout=30.0)
+        response = httpx.post(url, headers=headers, json=payload, timeout=30.0)
         response.raise_for_status()
     except httpx.HTTPError as e:
         logger.error("embedding_request_failed", error=str(e))
         raise EmbeddingError(f"Embedding API call failed: {e}") from e
 
-    data = response.json()
     try:
-        # Nested response for a single-item `inputs` list: [[float, ...]].
-        embedding = data[0]
-        if not isinstance(embedding, list) or not embedding:
-            raise ValueError("embedding is empty or not a list")
-    except (KeyError, IndexError, TypeError, ValueError) as e:
-        logger.error("embedding_response_unparseable", response=data)
-        raise EmbeddingError(f"Unexpected response shape from embedding API: {data}") from e
+        data = response.json()
+        if data.get("success") is False:
+            raise ValueError(f"API reported failure: {data.get('errors')}")
+        embedding = data["result"]["data"][0]
+        if not isinstance(embedding, list) or len(embedding) != EMBEDDING_DIM:
+            raise ValueError(
+                f"expected a list of {EMBEDDING_DIM} floats, got "
+                f"{type(embedding).__name__} of length "
+                f"{len(embedding) if hasattr(embedding, '__len__') else 'n/a'}"
+            )
+    except (AttributeError, KeyError, IndexError, TypeError, ValueError) as e:
+        logger.error("embedding_response_unparseable", error=str(e))
+        raise EmbeddingError(f"Unexpected response from embedding API: {e}") from e
 
     return [float(x) for x in embedding]
 
